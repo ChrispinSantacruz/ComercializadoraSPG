@@ -1,0 +1,186 @@
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from '../stores/authStore';
+
+// Layouts
+import PublicLayout from '../layouts/PublicLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
+
+// Páginas públicas
+import HomePage from '../pages/HomePage';
+import NewHomePage from '../pages/NewHomePage';
+import AboutUsPage from '../pages/AboutUsPage';
+import LoginPage from '../pages/auth/LoginPage';
+import RegisterPage from '../pages/auth/RegisterPage';
+import OAuthCallback from '../pages/auth/OAuthCallback';
+import ProductsPage from '../pages/products/ProductsPage';
+import ProductDetailPage from '../pages/products/ProductDetailPage';
+import CartPage from '../pages/cart/CartPage';
+import CheckoutPage from '../pages/checkout/CheckoutPage';
+
+// Páginas privadas - Cliente
+import ProfilePage from '../pages/profile/ProfilePage';
+import OrdersPage from '../pages/orders/OrdersPage';
+import OrderDetailPage from '../pages/orders/OrderDetailPage';
+import OrderConfirmationPage from '../pages/orders/OrderConfirmationPage';
+import AddressesPage from '../pages/profile/AddressesPage';
+import FavoritesPage from '../pages/profile/FavoritesPage';
+
+// Páginas privadas - Comerciante
+import MerchantDashboard from '../pages/merchant/MerchantDashboard';
+import MerchantProducts from '../pages/merchant/MerchantProducts';
+import MerchantOrders from '../pages/merchant/MerchantOrders';
+import MerchantAnalytics from '../pages/merchant/MerchantAnalytics';
+
+// Páginas privadas - Admin
+import AdminDashboard from '../pages/admin/AdminDashboard';
+import AdminUsers from '../pages/admin/AdminUsers';
+import AdminProducts from '../pages/admin/AdminProducts';
+import AdminOrders from '../pages/admin/AdminOrders';
+
+// Componente de protección de rutas
+const ProtectedRoute: React.FC<{
+  children: React.ReactNode;
+  requiredRole?: 'cliente' | 'comerciante' | 'administrador';
+}> = ({ children, requiredRole }) => {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && user?.rol !== requiredRole) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Componente de redirección basada en rol
+const RoleBasedRedirect: React.FC = () => {
+  const { user } = useAuthStore();
+
+  if (!user) return <Navigate to="/" replace />;
+
+  switch (user.rol) {
+    case 'administrador':
+      return <Navigate to="/admin" replace />;
+    case 'comerciante':
+      return <Navigate to="/merchant" replace />;
+    case 'cliente':
+    default:
+      return <Navigate to="/profile" replace />;
+  }
+};
+
+const AppRoutes: React.FC = () => {
+  const { isAuthenticated } = useAuthStore();
+
+  return (
+    <Routes>
+      {/* Rutas públicas */}
+      <Route path="/" element={<PublicLayout />}>
+        <Route index element={<NewHomePage />} />
+        <Route path="sobre-nosotros" element={<AboutUsPage />} />
+        <Route path="productos" element={<ProductsPage />} />
+        <Route path="productos/:id" element={<ProductDetailPage />} />
+        <Route path="carrito" element={<CartPage />} />
+        
+        {/* Rutas de autenticación - solo para no autenticados */}
+        <Route 
+          path="login" 
+          element={
+            isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
+          } 
+        />
+        <Route 
+          path="register" 
+          element={
+            isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
+          } 
+        />
+        
+        {/* Callback de OAuth - siempre accesible */}
+        <Route path="auth/callback" element={<OAuthCallback />} />
+      </Route>
+
+      {/* Rutas protegidas */}
+      <Route path="/" element={
+        <ProtectedRoute>
+          <DashboardLayout />
+        </ProtectedRoute>
+      }>
+        {/* Redirección basada en rol - mantenemos /perfil como alias */}
+        <Route path="perfil" element={<RoleBasedRedirect />} />
+
+        {/* Rutas de cliente */}
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="orders" element={<OrdersPage />} />
+        <Route path="orders/:id" element={<OrderDetailPage />} />
+        <Route path="order-confirmation/:id" element={<OrderConfirmationPage />} />
+        <Route path="addresses" element={<AddressesPage />} />
+        <Route path="favorites" element={<FavoritesPage />} />
+        <Route path="checkout" element={<CheckoutPage />} />
+
+        {/* Rutas de comerciante */}
+        <Route path="merchant" element={
+          <ProtectedRoute requiredRole="comerciante">
+            <MerchantDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="merchant/products" element={
+          <ProtectedRoute requiredRole="comerciante">
+            <MerchantProducts />
+          </ProtectedRoute>
+        } />
+        <Route path="merchant/orders" element={
+          <ProtectedRoute requiredRole="comerciante">
+            <MerchantOrders />
+          </ProtectedRoute>
+        } />
+        <Route path="merchant/analytics" element={
+          <ProtectedRoute requiredRole="comerciante">
+            <MerchantAnalytics />
+          </ProtectedRoute>
+        } />
+
+        {/* Rutas de administrador */}
+        <Route path="admin" element={
+          <ProtectedRoute requiredRole="administrador">
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="admin/users" element={
+          <ProtectedRoute requiredRole="administrador">
+            <AdminUsers />
+          </ProtectedRoute>
+        } />
+        <Route path="admin/products" element={
+          <ProtectedRoute requiredRole="administrador">
+            <AdminProducts />
+          </ProtectedRoute>
+        } />
+        <Route path="admin/orders" element={
+          <ProtectedRoute requiredRole="administrador">
+            <AdminOrders />
+          </ProtectedRoute>
+        } />
+      </Route>
+
+      {/* Ruta 404 */}
+      <Route path="*" element={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+            <p className="text-gray-600 mb-6">Página no encontrada</p>
+            <a href="/" className="btn-primary">
+              Volver al inicio
+            </a>
+          </div>
+        </div>
+      } />
+    </Routes>
+  );
+};
+
+export default AppRoutes; 

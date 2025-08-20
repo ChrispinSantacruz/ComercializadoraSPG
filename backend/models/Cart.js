@@ -1,0 +1,350 @@
+const mongoose = require('mongoose');
+
+const cartSchema = new mongoose.Schema({
+  // Usuario propietario del carrito
+  usuario: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'El usuario es requerido']
+  },
+  
+  // Productos en el carrito
+  productos: [{
+    producto: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true
+    },
+    nombre: String,
+    precio: Number,
+    precioOferta: Number,
+    imagen: String,
+    cantidad: {
+      type: Number,
+      required: true,
+      min: [1, 'La cantidad mínima es 1'],
+      max: [99, 'La cantidad máxima es 99']
+    },
+    subtotal: Number,
+    comerciante: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    fechaAgregado: {
+      type: Date,
+      default: Date.now
+    },
+    // Para verificar disponibilidad
+    stockDisponible: Number,
+    disponible: {
+      type: Boolean,
+      default: true
+    }
+  }],
+  
+  // Totales del carrito
+  subtotal: {
+    type: Number,
+    default: 0,
+    validate: {
+      validator: function(v) {
+        return !isNaN(v) && isFinite(v);
+      },
+      message: 'El subtotal debe ser un número válido'
+    }
+  },
+  
+  descuentos: {
+    type: Number,
+    default: 0,
+    validate: {
+      validator: function(v) {
+        return !isNaN(v) && isFinite(v);
+      },
+      message: 'Los descuentos deben ser un número válido'
+    }
+  },
+  
+  impuestos: {
+    type: Number,
+    default: 0,
+    validate: {
+      validator: function(v) {
+        return !isNaN(v) && isFinite(v);
+      },
+      message: 'Los impuestos deben ser un número válido'
+    }
+  },
+  
+  costoEnvio: {
+    type: Number,
+    default: 0,
+    validate: {
+      validator: function(v) {
+        return !isNaN(v) && isFinite(v);
+      },
+      message: 'El costo de envío debe ser un número válido'
+    }
+  },
+  
+  total: {
+    type: Number,
+    default: 0,
+    validate: {
+      validator: function(v) {
+        return !isNaN(v) && isFinite(v);
+      },
+      message: 'El total debe ser un número válido'
+    }
+  },
+  
+  // Cupones aplicados
+  cupones: [{
+    codigo: String,
+    descuento: Number,
+    tipo: {
+      type: String,
+      enum: ['porcentaje', 'monto_fijo']
+    }
+  }],
+  
+  // Estado del carrito
+  estado: {
+    type: String,
+    enum: ['activo', 'abandonado', 'convertido', 'expirado'],
+    default: 'activo'
+  },
+  
+  // Información adicional
+  moneda: {
+    type: String,
+    default: 'COP'
+  },
+  
+  // Fecha de última actividad
+  fechaUltimaActividad: {
+    type: Date,
+    default: Date.now
+  },
+  
+  // Fechas importantes
+  fechaCreacion: {
+    type: Date,
+    default: Date.now
+  },
+  fechaActualizacion: {
+    type: Date,
+    default: Date.now
+  }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+// Índices para mejorar rendimiento
+cartSchema.index({ usuario: 1 });
+cartSchema.index({ estado: 1 });
+cartSchema.index({ fechaUltimaActividad: 1 });
+cartSchema.index({ 'productos.producto': 1 });
+
+// Virtual para obtener cantidad total de productos
+cartSchema.virtual('cantidadTotal').get(function() {
+  return this.productos.reduce((total, producto) => total + producto.cantidad, 0);
+});
+
+// Virtual para obtener comerciantes únicos
+cartSchema.virtual('comerciantes').get(function() {
+  const comerciantes = this.productos.map(p => p.comerciante);
+  return [...new Set(comerciantes.map(c => c.toString()))];
+});
+
+// Virtual para verificar si el carrito está vacío
+cartSchema.virtual('estaVacio').get(function() {
+  return this.productos.length === 0;
+});
+
+// Middleware para actualizar fechas antes de guardar
+cartSchema.pre('save', function(next) {
+  this.fechaActualizacion = new Date();
+  this.fechaUltimaActividad = new Date();
+  
+  // Asegurar valores numéricos válidos
+  this.subtotal = isNaN(this.subtotal) || !isFinite(this.subtotal) ? 0 : this.subtotal;
+  this.descuentos = isNaN(this.descuentos) || !isFinite(this.descuentos) ? 0 : this.descuentos;
+  this.impuestos = isNaN(this.impuestos) || !isFinite(this.impuestos) ? 0 : this.impuestos;
+  this.costoEnvio = isNaN(this.costoEnvio) || !isFinite(this.costoEnvio) ? 0 : this.costoEnvio;
+  this.total = isNaN(this.total) || !isFinite(this.total) ? 0 : this.total;
+  
+  // Validar productos
+  this.productos.forEach(producto => {
+    if (isNaN(producto.subtotal) || !isFinite(producto.subtotal)) {
+      producto.subtotal = producto.cantidad * (producto.precioOferta || producto.precio || 0);
+    }
+  });
+  
+  next();
+});
+
+// Método para agregar producto al carrito
+cartSchema.methods.agregarProducto = function(producto, cantidad = 1) {
+  const productoExistente = this.productos.find(
+    p => p.producto.toString() === producto._id.toString()
+  );
+  
+  if (productoExistente) {
+    // Actualizar cantidad si el producto ya existe
+    productoExistente.cantidad += cantidad;
+    productoExistente.subtotal = productoExistente.cantidad * 
+      (producto.precioOferta || producto.precio);
+  } else {
+    // Agregar nuevo producto
+    this.productos.push({
+      producto: producto._id,
+      nombre: producto.nombre,
+      precio: producto.precio,
+      precioOferta: producto.precioOferta,
+      imagen: producto.imagenPrincipal,
+      cantidad,
+      subtotal: cantidad * (producto.precioOferta || producto.precio),
+      comerciante: producto.comerciante,
+      stockDisponible: producto.stock,
+      disponible: producto.stock >= cantidad
+    });
+  }
+  
+  this.calcularTotales();
+  return this.save();
+};
+
+// Método para actualizar cantidad de producto
+cartSchema.methods.actualizarCantidad = function(productoId, nuevaCantidad) {
+  const producto = this.productos.find(
+    p => p.producto.toString() === productoId.toString()
+  );
+  
+  if (producto) {
+    if (nuevaCantidad <= 0) {
+      // Eliminar producto si cantidad es 0 o negativa
+      this.productos = this.productos.filter(
+        p => p.producto.toString() !== productoId.toString()
+      );
+    } else {
+      // Actualizar cantidad
+      producto.cantidad = nuevaCantidad;
+      producto.subtotal = nuevaCantidad * (producto.precioOferta || producto.precio);
+      producto.disponible = producto.stockDisponible >= nuevaCantidad;
+    }
+    
+    this.calcularTotales();
+    return this.save();
+  }
+  
+  throw new Error('Producto no encontrado en el carrito');
+};
+
+// Método para eliminar producto del carrito
+cartSchema.methods.eliminarProducto = function(productoId) {
+  this.productos = this.productos.filter(
+    p => p.producto.toString() !== productoId.toString()
+  );
+  
+  this.calcularTotales();
+  return this.save();
+};
+
+// Método para limpiar carrito
+cartSchema.methods.limpiar = function() {
+  this.productos = [];
+  this.cupones = [];
+  this.calcularTotales();
+  return this.save();
+};
+
+// Método para calcular totales
+cartSchema.methods.calcularTotales = function() {
+  // Calcular subtotal con validación robusta
+  this.subtotal = this.productos.reduce((total, producto) => {
+    const subtotal = producto.subtotal || (producto.cantidad * (producto.precioOferta || producto.precio || 0));
+    return total + (isNaN(subtotal) ? 0 : subtotal);
+  }, 0);
+  
+  // Aplicar descuentos de cupones
+  this.descuentos = this.cupones.reduce((total, cupon) => {
+    if (cupon.tipo === 'porcentaje') {
+      return total + (this.subtotal * cupon.descuento / 100);
+    } else {
+      return total + cupon.descuento;
+    }
+  }, 0);
+  
+  // Calcular impuestos (19% IVA en Colombia)
+  this.impuestos = (this.subtotal - this.descuentos) * 0.19;
+  
+  // Calcular total
+  this.total = this.subtotal - this.descuentos + this.impuestos + (this.costoEnvio || 0);
+  
+  // Asegurar que el total no sea negativo y no sea NaN
+  if (this.total < 0 || isNaN(this.total)) {
+    this.total = 0;
+  }
+  
+  // Asegurar que subtotal no sea NaN
+  if (isNaN(this.subtotal)) {
+    this.subtotal = 0;
+  }
+  
+  // Asegurar que impuestos no sea NaN
+  if (isNaN(this.impuestos)) {
+    this.impuestos = 0;
+  }
+};
+
+// Método para aplicar cupón
+cartSchema.methods.aplicarCupon = function(codigo, descuento, tipo) {
+  // Verificar si el cupón ya fue aplicado
+  const cuponExistente = this.cupones.find(c => c.codigo === codigo);
+  
+  if (!cuponExistente) {
+    this.cupones.push({
+      codigo,
+      descuento,
+      tipo
+    });
+    
+    this.calcularTotales();
+    return this.save();
+  }
+  
+  throw new Error('El cupón ya fue aplicado');
+};
+
+// Método para remover cupón
+cartSchema.methods.removerCupon = function(codigo) {
+  this.cupones = this.cupones.filter(c => c.codigo !== codigo);
+  this.calcularTotales();
+  return this.save();
+};
+
+// Método para verificar disponibilidad de productos
+cartSchema.methods.verificarDisponibilidad = async function() {
+  const Product = mongoose.model('Product');
+  
+  for (let item of this.productos) {
+    const producto = await Product.findById(item.producto);
+    if (producto) {
+      item.stockDisponible = producto.stock;
+      item.disponible = producto.stock >= item.cantidad && producto.estado === 'aprobado';
+      item.precio = producto.precio;
+      item.precioOferta = producto.precioOferta;
+      item.subtotal = item.cantidad * (producto.precioOferta || producto.precio);
+    } else {
+      item.disponible = false;
+    }
+  }
+  
+  this.calcularTotales();
+  return this.save();
+};
+
+module.exports = mongoose.model('Cart', cartSchema); 

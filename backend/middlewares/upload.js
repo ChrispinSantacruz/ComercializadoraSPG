@@ -1,0 +1,281 @@
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
+const path = require('path');
+
+// Configurar Cloudinary solo si las credenciales están disponibles
+const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
+                     process.env.CLOUDINARY_API_KEY && 
+                     process.env.CLOUDINARY_API_SECRET;
+
+if (useCloudinary) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+}
+
+// Filtro para validar tipos de archivo
+const fileFilter = (req, file, cb) => {
+  // Tipos de archivo permitidos
+  const allowedTypes = /jpeg|jpg|png|gif|webp/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+  
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    const error = new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)');
+    error.code = 'INVALID_FILE_TYPE';
+    cb(error, false);
+  }
+};
+
+// Configuración de storage para productos
+let productStorage;
+
+if (useCloudinary) {
+  productStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: 'comercializadora-spg/productos',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+      transformation: [
+        { width: 800, height: 800, crop: 'limit', quality: 'auto' },
+        { fetch_format: 'auto' }
+      ]
+    }
+  });
+} else {
+  // Almacenamiento local como fallback
+  productStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadPath = path.join(__dirname, '../uploads/productos');
+      require('fs').mkdirSync(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+}
+
+// Configuración de storage para avatares
+let avatarStorage;
+
+if (useCloudinary) {
+  avatarStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: 'comercializadora-spg/avatares',
+      allowed_formats: ['jpg', 'jpeg', 'png'],
+      transformation: [
+        { width: 200, height: 200, crop: 'fill', gravity: 'face', quality: 'auto' },
+        { fetch_format: 'auto' }
+      ]
+    }
+  });
+} else {
+  // Almacenamiento local como fallback
+  avatarStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadPath = path.join(__dirname, '../uploads/avatares');
+      require('fs').mkdirSync(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+}
+
+// Configuración de storage para categorías
+let categoryStorage;
+
+if (useCloudinary) {
+  categoryStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: 'comercializadora-spg/categorias',
+      allowed_formats: ['jpg', 'jpeg', 'png', 'svg'],
+      transformation: [
+        { width: 400, height: 400, crop: 'limit', quality: 'auto' },
+        { fetch_format: 'auto' }
+      ]
+    }
+  });
+} else {
+  categoryStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadPath = path.join(__dirname, '../uploads/categorias');
+      require('fs').mkdirSync(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'category-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+}
+
+// Configuración de storage para reseñas
+let reviewStorage;
+
+if (useCloudinary) {
+  reviewStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: 'comercializadora-spg/reseñas',
+      allowed_formats: ['jpg', 'jpeg', 'png'],
+      transformation: [
+        { width: 600, height: 600, crop: 'limit', quality: 'auto' },
+        { fetch_format: 'auto' }
+      ]
+    }
+  });
+} else {
+  reviewStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadPath = path.join(__dirname, '../uploads/reseñas');
+      require('fs').mkdirSync(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'review-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+}
+
+// Middleware para subir imágenes de productos
+const subirImagenesProducto = multer({
+  storage: productStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB
+    files: 10 // máximo 10 archivos
+  }
+}).array('imagenes', 10);
+
+// Middleware para subir imagen principal de producto
+const subirImagenPrincipalProducto = multer({
+  storage: productStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB
+  }
+}).single('imagenPrincipal');
+
+// Middleware para subir avatar de usuario
+const subirAvatar = multer({
+  storage: avatarStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB
+  }
+}).single('avatar');
+
+// Middleware para subir imagen de categoría
+const subirImagenCategoria = multer({
+  storage: categoryStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 3 * 1024 * 1024 // 3MB
+  }
+}).single('imagen');
+
+// Middleware para subir imágenes de reseña
+const subirImagenesReseña = multer({
+  storage: reviewStorage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 3 * 1024 * 1024, // 3MB
+    files: 5 // máximo 5 archivos
+  }
+}).array('imagenes', 5);
+
+// Middleware para manejar errores de multer
+const manejarErroresSubida = (error, req, res, next) => {
+  if (error instanceof multer.MulterError) {
+    switch (error.code) {
+      case 'LIMIT_FILE_SIZE':
+        return res.status(400).json({
+          exito: false,
+          mensaje: 'El archivo es demasiado grande'
+        });
+      case 'LIMIT_FILE_COUNT':
+        return res.status(400).json({
+          exito: false,
+          mensaje: 'Demasiados archivos'
+        });
+      case 'LIMIT_UNEXPECTED_FILE':
+        return res.status(400).json({
+          exito: false,
+          mensaje: 'Campo de archivo inesperado'
+        });
+      default:
+        return res.status(400).json({
+          exito: false,
+          mensaje: 'Error en la subida de archivo'
+        });
+    }
+  }
+  
+  if (error && error.code === 'INVALID_FILE_TYPE') {
+    return res.status(400).json({
+      exito: false,
+      mensaje: error.message
+    });
+  }
+  
+  next(error);
+};
+
+// Función para eliminar imagen de Cloudinary
+const eliminarImagen = async (publicId) => {
+  try {
+    const resultado = await cloudinary.uploader.destroy(publicId);
+    return resultado;
+  } catch (error) {
+    console.error('Error eliminando imagen de Cloudinary:', error);
+    throw error;
+  }
+};
+
+// Función para eliminar múltiples imágenes
+const eliminarMultiplesImagenes = async (publicIds) => {
+  try {
+    const resultado = await cloudinary.api.delete_resources(publicIds);
+    return resultado;
+  } catch (error) {
+    console.error('Error eliminando múltiples imágenes:', error);
+    throw error;
+  }
+};
+
+// Middleware wrapper para manejar la subida con manejo de errores
+const crearMiddlewareSubida = (uploadMiddleware) => {
+  return (req, res, next) => {
+    uploadMiddleware(req, res, (error) => {
+      if (error) {
+        return manejarErroresSubida(error, req, res, next);
+      }
+      next();
+    });
+  };
+};
+
+module.exports = {
+  cloudinary,
+  subirImagenesProducto: crearMiddlewareSubida(subirImagenesProducto),
+  subirImagenPrincipalProducto: crearMiddlewareSubida(subirImagenPrincipalProducto),
+  subirAvatar: crearMiddlewareSubida(subirAvatar),
+  subirImagenCategoria: crearMiddlewareSubida(subirImagenCategoria),
+  subirImagenesReseña: crearMiddlewareSubida(subirImagenesReseña),
+  eliminarImagen,
+  eliminarMultiplesImagenes,
+  manejarErroresSubida
+}; 
