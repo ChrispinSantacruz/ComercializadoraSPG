@@ -260,7 +260,7 @@ const crearProducto = async (req, res) => {
         }
         
         const imagenData = {
-          url: imageUrl,
+          url: imageUrl.replace(/\\/g, '/'), // Reemplazar backslash por slash
           publicId: file.public_id || null,
           alt: `${datosProducto.nombre} - Imagen ${i + 1}`,
           orden: i
@@ -271,8 +271,8 @@ const crearProducto = async (req, res) => {
       }
       
       if (imagenesData.length > 0) {
-        datosProducto.imagenes = imagenesData; // Guardar como array de objetos
-        datosProducto.imagenPrincipal = imagenesData[0].url;
+  datosProducto.imagenes = imagenesData; // Guardar como array de objetos
+  datosProducto.imagenPrincipal = imagenesData[0].url.replace(/\\/g, '/');
         console.log(`💾 ${imagenesData.length} imágenes guardadas para el producto`);
       }
     } else {

@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 
 const LoginPage: React.FC = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -92,18 +93,29 @@ const LoginPage: React.FC = () => {
               <label htmlFor="password" className="sr-only">
                 Contraseña
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Contraseña"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={loading}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="Contraseña"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-2 text-gray-500 text-sm focus:outline-none"
+                  tabIndex={-1}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
           </div>
 

@@ -12,16 +12,18 @@ const crearAdmin = async () => {
 
     // Datos del administrador con email único
     const adminData = {
-      nombre: 'Super Administrador',
-      email: 'superadmin@spg.com',
-      password: 'super123',
-      telefono: '+57 300 123 4567',
+      nombre: 'Admin Secundario',
+      email: 'admin2@spg.com',
+      password: 'admin2345',
+      telefono: '+57 300 987 6543',
       rol: 'administrador',
       estado: 'activo',
       verificado: true,
+      proveedor: 'local',
+      proveedorId: 'admin2',
       configuracion: {
         pais: 'Colombia',
-        region: 'Bogotá',
+        region: 'Medellín',
         idioma: 'es',
         moneda: 'COP'
       }
@@ -36,12 +38,12 @@ const crearAdmin = async () => {
       console.log('👤 Nombre:', adminExistente.nombre);
       console.log('🔑 Rol:', adminExistente.rol);
       
-      // Actualizar contraseña y asegurar que sea admin
-      adminExistente.password = adminData.password;
-      adminExistente.rol = 'administrador';
-      adminExistente.estado = 'activo';
-      adminExistente.verificado = true;
-      await adminExistente.save();
+  // Actualizar contraseña y asegurar que sea admin
+  adminExistente.password = adminData.password; // Esto disparará el pre-save para hashear
+  adminExistente.rol = 'administrador';
+  adminExistente.estado = 'activo';
+  adminExistente.verificado = true;
+  await adminExistente.save(); // El pre-save hashea la contraseña
       
       console.log('✅ Administrador actualizado exitosamente');
     } else {
@@ -69,11 +71,11 @@ const crearAdmin = async () => {
   } catch (error) {
     console.error('❌ Error:', error.message);
     if (error.code === 11000) {
-      console.log('\n💡 SOLUCIÓN: Email duplicado');
-      console.log('   El email ya existe en la base de datos.');
-      console.log('   Usando credenciales del usuario existente:');
-      console.log('   📧 Email: superadmin@spg.com');
-      console.log('   🔑 Password: super123');
+  console.log('\n💡 SOLUCIÓN: Email duplicado');
+  console.log('   El email ya existe en la base de datos.');
+  console.log('   Usando credenciales del usuario existente:');
+  console.log('   📧 Email: ' + adminData.email);
+  console.log('   🔑 Password: ' + adminData.password);
     }
   } finally {
     await mongoose.disconnect();

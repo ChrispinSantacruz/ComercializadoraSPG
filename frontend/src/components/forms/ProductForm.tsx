@@ -61,22 +61,23 @@ const ProductForm: React.FC<ProductFormProps> = ({
     } catch (error) {
       console.error('❌ Error cargando categorías:', error);
       // Usar categorías por defecto si no se pueden cargar desde la API
+      // ObjectIds de ejemplo (24 caracteres hex)
       const categoriasDefault: Category[] = [
-        { _id: '1', nombre: 'Hogar y Decoración', slug: 'hogar-decoracion', estado: 'activa' as const, orden: 1, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '2', nombre: 'Cocina y Comedor', slug: 'cocina-comedor', estado: 'activa' as const, orden: 2, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '3', nombre: 'Infantil y Bebés', slug: 'infantil-bebes', estado: 'activa' as const, orden: 3, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '4', nombre: 'Aseo y Cuidado Personal', slug: 'aseo-cuidado-personal', estado: 'activa' as const, orden: 4, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '5', nombre: 'Manufactura y Herramientas', slug: 'manufactura-herramientas', estado: 'activa' as const, orden: 5, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '6', nombre: 'Tecnología y Electrónicos', slug: 'tecnologia-electronicos', estado: 'activa' as const, orden: 6, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '7', nombre: 'Ropa y Accesorios', slug: 'ropa-accesorios', estado: 'activa' as const, orden: 7, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '8', nombre: 'Deportes y Recreación', slug: 'deportes-recreacion', estado: 'activa' as const, orden: 8, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '9', nombre: 'Mascotas', slug: 'mascotas', estado: 'activa' as const, orden: 9, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '10', nombre: 'Alimentación y Bebidas', slug: 'alimentacion-bebidas', estado: 'activa' as const, orden: 10, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '11', nombre: 'Limpieza del Hogar', slug: 'limpieza-hogar', estado: 'activa' as const, orden: 11, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '12', nombre: 'Jardinería y Plantas', slug: 'jardineria-plantas', estado: 'activa' as const, orden: 12, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '13', nombre: 'Oficina y Papelería', slug: 'oficina-papeleria', estado: 'activa' as const, orden: 13, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '14', nombre: 'Automóviles y Motocicletas', slug: 'automoviles-motocicletas', estado: 'activa' as const, orden: 14, fechaCreacion: '', contadorProductos: 0 },
-        { _id: '15', nombre: 'Salud y Bienestar', slug: 'salud-bienestar', estado: 'activa' as const, orden: 15, fechaCreacion: '', contadorProductos: 0 }
+        { _id: '64f8c2e2a1b2c3d4e5f6a701', nombre: 'Hogar y Decoración', slug: 'hogar-decoracion', estado: 'activa' as const, orden: 1, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a702', nombre: 'Cocina y Comedor', slug: 'cocina-comedor', estado: 'activa' as const, orden: 2, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a703', nombre: 'Infantil y Bebés', slug: 'infantil-bebes', estado: 'activa' as const, orden: 3, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a704', nombre: 'Aseo y Cuidado Personal', slug: 'aseo-cuidado-personal', estado: 'activa' as const, orden: 4, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a705', nombre: 'Manufactura y Herramientas', slug: 'manufactura-herramientas', estado: 'activa' as const, orden: 5, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a706', nombre: 'Tecnología y Electrónicos', slug: 'tecnologia-electronicos', estado: 'activa' as const, orden: 6, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a707', nombre: 'Ropa y Accesorios', slug: 'ropa-accesorios', estado: 'activa' as const, orden: 7, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a708', nombre: 'Deportes y Recreación', slug: 'deportes-recreacion', estado: 'activa' as const, orden: 8, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a709', nombre: 'Mascotas', slug: 'mascotas', estado: 'activa' as const, orden: 9, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a710', nombre: 'Alimentación y Bebidas', slug: 'alimentacion-bebidas', estado: 'activa' as const, orden: 10, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a711', nombre: 'Limpieza del Hogar', slug: 'limpieza-hogar', estado: 'activa' as const, orden: 11, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a712', nombre: 'Jardinería y Plantas', slug: 'jardineria-plantas', estado: 'activa' as const, orden: 12, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a713', nombre: 'Oficina y Papelería', slug: 'oficina-papeleria', estado: 'activa' as const, orden: 13, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a714', nombre: 'Automóviles y Motocicletas', slug: 'automoviles-motocicletas', estado: 'activa' as const, orden: 14, fechaCreacion: '', contadorProductos: 0 },
+        { _id: '64f8c2e2a1b2c3d4e5f6a715', nombre: 'Salud y Bienestar', slug: 'salud-bienestar', estado: 'activa' as const, orden: 15, fechaCreacion: '', contadorProductos: 0 }
       ];
       setCategories(categoriasDefault);
       console.log('✅ Usando categorías por defecto:', categoriasDefault.length);

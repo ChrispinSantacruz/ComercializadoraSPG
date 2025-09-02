@@ -86,8 +86,8 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra principal roja */}
-      <header className="bg-red-600 text-white shadow-lg">
+  {/* Barra principal azul */}
+  <header className="bg-blue-600 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
