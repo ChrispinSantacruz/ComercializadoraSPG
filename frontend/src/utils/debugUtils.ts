@@ -37,7 +37,8 @@ export const debugOrderImages = (order: any) => {
   if (order.productos && Array.isArray(order.productos)) {
     order.productos.forEach((item: any, index: number) => {
       console.log(`   Producto ${index + 1}: ${item.producto?.nombre || 'Sin nombre'}`);
-      console.log(`     - Campo imagen del pedido: ${item.imagen}`);
+      console.log(`     - Campo imagen del pedido:`, item.imagen);
+      console.log(`     - Tipo de imagen del pedido:`, typeof item.imagen);
       console.log(`     - Imágenes del producto:`, item.producto?.imagenes);
       
       // Probar diferentes formas de obtener la imagen
@@ -45,9 +46,27 @@ export const debugOrderImages = (order: any) => {
       const imagenProducto = item.producto?.imagenes?.[0];
       const imagenProductoUrl = item.producto?.imagenes?.[0]?.url;
       
-      console.log(`     - URL final (imagen del pedido): ${getImageUrl(imagenPedido)}`);
-      console.log(`     - URL final (imagen del producto): ${getImageUrl(imagenProducto)}`);
-      console.log(`     - URL final (imagen del producto .url): ${getImageUrl(imagenProductoUrl)}`);
+      // Intentar procesar la imagen del pedido de forma segura
+      try {
+        const urlFinalPedido = getImageUrl(imagenPedido);
+        console.log(`     - URL final (imagen del pedido): ${urlFinalPedido}`);
+      } catch (error) {
+        console.error(`     - Error procesando imagen del pedido:`, error);
+      }
+      
+      try {
+        const urlFinalProducto = getImageUrl(imagenProducto);
+        console.log(`     - URL final (imagen del producto): ${urlFinalProducto}`);
+      } catch (error) {
+        console.error(`     - Error procesando imagen del producto:`, error);
+      }
+      
+      try {
+        const urlFinalProductoUrl = getImageUrl(imagenProductoUrl);
+        console.log(`     - URL final (imagen del producto .url): ${urlFinalProductoUrl}`);
+      } catch (error) {
+        console.error(`     - Error procesando imagen del producto .url:`, error);
+      }
     });
   }
 };

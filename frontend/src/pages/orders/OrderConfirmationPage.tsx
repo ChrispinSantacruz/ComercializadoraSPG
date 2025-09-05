@@ -4,6 +4,7 @@ import { Order } from '../../types';
 import orderService from '../../services/orderService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { getImageUrl, getFirstImageUrl } from '../../utils/imageUtils';
+import { formatDeliveryInfo } from '../../utils/addressUtils';
 
 const OrderConfirmationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -179,26 +180,32 @@ const OrderConfirmationPage: React.FC = () => {
             {/* Información de entrega */}
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Información de entrega</h2>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Destinatario</p>
-                  <p className="text-gray-900">{order.direccionEntrega.nombreDestinatario}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Teléfono</p>
-                  <p className="text-gray-900">{order.direccionEntrega.telefono}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700">Dirección</p>
-                  <p className="text-gray-900">{order.direccionEntrega.direccionCompleta}</p>
-                </div>
-                {order.direccionEntrega.instruccionesEntrega && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Instrucciones</p>
-                    <p className="text-gray-900">{order.direccionEntrega.instruccionesEntrega}</p>
+              {(() => {
+                const deliveryInfo = formatDeliveryInfo(order.direccionEntrega);
+                
+                return (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Destinatario</p>
+                      <p className="text-gray-900">{deliveryInfo.recipientName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Teléfono</p>
+                      <p className="text-gray-900">{deliveryInfo.recipientPhone}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Dirección</p>
+                      <p className="text-gray-900">{deliveryInfo.completeAddress}</p>
+                    </div>
+                    {deliveryInfo.hasInstructions && (
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Instrucciones</p>
+                        <p className="text-gray-900">{deliveryInfo.instructions}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
             </div>
 
             {/* Método de pago */}

@@ -17,6 +17,7 @@ import ProductsPage from '../pages/products/ProductsPage';
 import ProductDetailPage from '../pages/products/ProductDetailPage';
 import CartPage from '../pages/cart/CartPage';
 import CheckoutPage from '../pages/checkout/CheckoutPage';
+import WompiReturnPageFixed from '../pages/checkout/WompiReturnPageFixed';
 
 // Páginas privadas - Cliente
 import ProfilePage from '../pages/profile/ProfilePage';
@@ -86,6 +87,11 @@ const AppRoutes: React.FC = () => {
         <Route path="productos/:id" element={<ProductDetailPage />} />
         <Route path="carrito" element={<CartPage />} />
         
+        {/* Páginas de retorno de Wompi - accesibles sin autenticación */}
+        <Route path="payment/wompi/return" element={<WompiReturnPageFixed />} />
+        <Route path="wompi-return" element={<WompiReturnPageFixed />} />
+        <Route path="order-confirmation" element={<WompiReturnPageFixed />} />
+        
         {/* Rutas de autenticación - solo para no autenticados */}
         <Route 
           path="login" 
@@ -136,6 +142,11 @@ const AppRoutes: React.FC = () => {
         <Route path="merchant/orders" element={
           <ProtectedRoute requiredRole="comerciante">
             <MerchantOrders />
+          </ProtectedRoute>
+        } />
+        <Route path="merchant/orders/:id" element={
+          <ProtectedRoute requiredRole="comerciante">
+            <OrderDetailPage />
           </ProtectedRoute>
         } />
         <Route path="merchant/analytics" element={

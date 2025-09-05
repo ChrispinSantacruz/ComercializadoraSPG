@@ -40,7 +40,7 @@ const testNotificaciones = async () => {
         datos: {
           elementoId: pedido._id,
           tipoElemento: 'pedido',
-          url: `/comerciante/pedidos/${pedido.numeroOrden}`,
+          url: `/merchant/orders/${pedido._id}`,
           accion: 'ver_pedido'
         },
         prioridad: 'alta',
@@ -57,7 +57,7 @@ const testNotificaciones = async () => {
         datos: {
           elementoId: pedido._id,
           tipoElemento: 'pedido',
-          url: `/comerciante/pedidos/${pedido.numeroOrden}`,
+          url: `/merchant/orders/${pedido._id}`,
           accion: 'ver_pedido'
         },
         prioridad: 'media',

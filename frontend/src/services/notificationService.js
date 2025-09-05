@@ -30,7 +30,7 @@ class NotificationService {
         datos: {
           elementoId: producto._id,
           tipoElemento: 'producto',
-          url: `/comerciante/productos/${producto.slug}`,
+          url: `/merchant/products/${producto._id}`,
           accion: 'ver_producto'
         },
         prioridad: 'alta',
@@ -68,7 +68,7 @@ class NotificationService {
         datos: {
           elementoId: producto._id,
           tipoElemento: 'producto',
-          url: `/comerciante/productos/${producto._id}/editar`,
+          url: `/merchant/products`,
           accion: 'editar_producto',
           datosExtra: { motivo }
         },
@@ -115,7 +115,7 @@ class NotificationService {
         datos: {
           elementoId: pedido._id,
           tipoElemento: 'pedido',
-          url: `/comerciante/pedidos/${pedido.numeroOrden}`,
+          url: `/merchant/orders/${pedido._id}`,
           accion: 'ver_pedido',
           datosExtra: {
             numeroOrden: pedido.numeroOrden,
@@ -148,7 +148,7 @@ class NotificationService {
         datos: {
           elementoId: pedido._id,
           tipoElemento: 'pedido',
-          url: `/cliente/pedidos/${pedido.numeroOrden}`,
+          url: `/orders/${pedido._id}`,
           accion: 'ver_pedido'
         },
         prioridad: 'media'
@@ -172,7 +172,7 @@ class NotificationService {
         datos: {
           elementoId: pedido._id,
           tipoElemento: 'pedido',
-          url: `/cliente/pedidos/${pedido.numeroOrden}`,
+          url: `/orders/${pedido._id}`,
           accion: 'rastrear_pedido',
           datosExtra: {
             numeroGuia: pedido.envio.numeroGuia,
@@ -200,7 +200,7 @@ class NotificationService {
         datos: {
           elementoId: pedido._id,
           tipoElemento: 'pedido',
-          url: `/cliente/pedidos/${pedido.numeroOrden}`,
+          url: `/orders/${pedido._id}`,
           accion: 'calificar_productos'
         },
         prioridad: 'media'
@@ -224,7 +224,7 @@ class NotificationService {
         datos: {
           elementoId: reseña._id,
           tipoElemento: 'reseña',
-          url: `/comerciante/productos/${producto.slug}#reseñas`,
+          url: `/merchant/products`,
           accion: 'ver_reseña',
           datosExtra: {
             calificacion: reseña.calificacion,
@@ -252,7 +252,7 @@ class NotificationService {
         datos: {
           elementoId: producto._id,
           tipoElemento: 'producto',
-          url: `/comerciante/productos/${producto._id}/editar`,
+          url: `/merchant/products`,
           accion: 'actualizar_stock',
           datosExtra: {
             stockActual: producto.stock,

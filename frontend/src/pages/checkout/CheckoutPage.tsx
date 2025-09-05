@@ -1,77 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { Cart, Address, PaymentMethod, OrderForm } from '../../types';
+import { useNavigate } from 'react-router-dom';
+import { Cart, Address, OrderForm } from '../../types';
 import { cartService } from '../../services/cartService';
 import addressService from '../../services/addressService';
-import { paymentService } from '../../services/paymentService';
 import orderService from '../../services/orderService';
-import AddressForm from '../../components/forms/AddressForm';
+import wompiService from '../../services/wompiService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useNotificationCard } from '../../hooks/useNotificationCard';
+import { useAuthStore } from '../../stores/authStore';
 
-// Interfaz para los datos de pago
-interface PaymentData {
-  tarjeta: {
-    numero: string;
-    nombre: string;
-    fechaVencimiento: string;
-    cvv: string;
-    tipoDocumento: string;
-    numeroDocumento: string;
-  };
-  pse: {
-    banco: string;
-    tipoPersona: string;
-    tipoDocumento: string;
-    numeroDocumento: string;
-    email: string;
-  };
-  nequi: {
-    telefono: string;
-    pin: string;
-  };
-}
-
-const CheckoutPage: React.FC = () => {
-  const { showSuccess, showError, NotificationCardContainer } = useNotificationCard();
+const CheckoutPageOptimized: React.FC = () => {
+  const navigate = useNavigate();
+  const { showError, showSuccess } = useNotificationCard();
+  const { user } = useAuthStore();
+  
+  // Estados principales
   const [cart, setCart] = useState<Cart | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
-
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [error, setError] = useState('');
+
+  // Estados para el formulario
   const [selectedAddress, setSelectedAddress] = useState<string>('');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('');
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [paymentData, setPaymentData] = useState<PaymentData>({
-    tarjeta: {
+  const [useNewAddress, setUseNewAddress] = useState(false);
+  const [comments, setComments] = useState('');
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [newAddress, setNewAddress] = useState<Address>({
+    _id: '',
+    alias: 'nueva',
+    nombreDestinatario: '',
+    telefono: '',
+    direccion: {
+      calle: '',
       numero: '',
-      nombre: '',
-      fechaVencimiento: '',
-      cvv: '',
-      tipoDocumento: 'cedula',
-      numeroDocumento: ''
+      apartamento: '',
+      barrio: '',
+      ciudad: '',
+      departamento: '',
+      codigoPostal: '',
+      pais: 'Colombia'
     },
-    pse: {
-      banco: '',
-      tipoPersona: 'natural',
-      tipoDocumento: 'cedula',
-      numeroDocumento: '',
-      email: ''
+    tipo: 'casa',
+    instruccionesEntrega: '',
+    configuracion: {
+      esPredeterminada: false,
+      esFacturacion: false,
+      esEnvio: true,
+      activa: true
     },
-    nequi: {
-      telefono: '',
-      pin: ''
+    direccionCompleta: '',
+    estadisticas: {
+      vecesUsada: 0,
+      entregasExitosas: 0,
+      entregasFallidas: 0
     }
   });
-  const [orderData, setOrderData] = useState<Partial<OrderForm>>({
-    productos: [],
-    direccionEntrega: '',
-    metodoPago: { tipo: 'PSE', datos: {} },
-    usarDireccionGuardada: true,
-    comentarios: ''
-  });
+
+  // Estados para método de pago
+  const [paymentMethod, setPaymentMethod] = useState<'wompi' | 'PSE' | 'Nequi' | 'wompi_card'>('wompi');
 
   useEffect(() => {
     loadInitialData();
@@ -80,828 +68,938 @@ const CheckoutPage: React.FC = () => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      const [cartData, addressesData] = await Promise.all([
-        cartService.getCart(),
-        addressService.getAddresses()
-      ]);
       
+      // Cargar carrito
+      const cartData = await cartService.getCart();
+      if (!cartData || !cartData.productos || cartData.productos.length === 0) {
+        showError('Tu carrito está vacío', 'Agrega productos antes de proceder al checkout');
+        navigate('/cart');
+        return;
+      }
       setCart(cartData);
-      setAddresses(addressesData);
-      
-      // Métodos de pago simulados para ambiente de pruebas
-      const simulatedPaymentMethods = [
-        {
-          tipo: 'tarjeta_credito' as const,
-          nombre: 'Tarjeta de Crédito',
-          descripcion: 'Pago seguro con tarjeta Visa/Mastercard (Simulado)',
-          icono: '💳',
-          disponible: true,
-          configuracion: { 
-            requiereCVV: true,
-            aceptaCredito: true,
-            aceptaDebito: true 
-          }
-        },
-        {
-          tipo: 'PSE' as const,
-          nombre: 'PSE - Pagos Seguros en Línea',
-          descripcion: 'Pago directo desde tu banco (Simulado)',
-          icono: '🏦',
-          disponible: true,
-          configuracion: { 
-            bancos: ['Bancolombia', 'Banco de Bogotá', 'Davivienda', 'BBVA', 'Banco Popular'],
-            tipoPersona: ['natural', 'juridica']
-          }
-        },
-        {
-          tipo: 'Nequi' as const,
-          nombre: 'Nequi',
-          descripcion: 'Pago con billetera digital Nequi (Simulado)',
-          icono: '📱',
-          disponible: true,
-          configuracion: { 
-            requiereTelefono: true,
-            limiteTransaccion: 2000000
-          }
-        }
-      ];
-      
-      setPaymentMethods(simulatedPaymentMethods);
+
+      // Cargar direcciones
+      const addressesData = await addressService.getAddresses();
+      setAddresses(addressesData || []);
       
       // Auto-seleccionar dirección predeterminada
-      const defaultAddress = addressesData.find((addr: any) => addr.configuracion.esPredeterminada);
+      const defaultAddress = addressesData.find((addr: any) => addr.configuracion?.esPredeterminada);
       if (defaultAddress) {
         setSelectedAddress(defaultAddress._id);
       }
-      
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error cargando datos');
+
+    } catch (error) {
+      console.error('Error loading initial data:', error);
+      setError('Error al cargar los datos iniciales');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddressCreate = async (addressData: any) => {
+  const validateForm = (): boolean => {
+    setError('');
+
+    // Validar dirección
+    if (!useNewAddress && !selectedAddress) {
+      setError('Selecciona una dirección de entrega');
+      return false;
+    }
+
+    if (useNewAddress) {
+      if (!newAddress.nombreDestinatario || !newAddress.telefono || 
+          !newAddress.direccion.calle || !newAddress.direccion.ciudad) {
+        setError('Completa todos los campos obligatorios de la dirección');
+        return false;
+      }
+    }
+
+    // Validar términos y condiciones
+    if (!acceptedTerms) {
+      setError('Debes aceptar los términos y condiciones');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleCreateOrder = async (): Promise<string | null> => {
     try {
-      const newAddress = await addressService.createAddress(addressData);
-      setAddresses(prev => [...prev, newAddress]);
-      setSelectedAddress(newAddress._id);
-      setShowAddressForm(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error creando dirección');
+      setProcessingPayment(true);
+      setError('');
+
+      // Preparar datos de la orden
+      const orderData: OrderForm = {
+        productos: cart!.productos.map(item => ({
+          producto: item.producto._id,
+          cantidad: item.cantidad,
+          precio: item.producto.precio,
+          comerciante: typeof item.producto.comerciante === 'string' 
+            ? item.producto.comerciante 
+            : item.producto.comerciante._id
+        })),
+        direccionEntrega: useNewAddress ? newAddress : selectedAddress,
+        metodoPago: {
+          tipo: paymentMethod,
+          datos: {}
+        },
+        usarDireccionGuardada: !useNewAddress,
+        comentarios: comments
+      };
+
+      console.log('🚀 Creating order with data:', orderData);
+
+      // Crear la orden
+      const response = await orderService.createOrder(orderData);
+      
+      console.log('📦 Order service response:', response);
+      
+      if (!response || !response._id) {
+        console.error('❌ Invalid order response:', response);
+        throw new Error('Error al crear la orden: respuesta inválida del servidor');
+      }
+
+      console.log('✅ Order created successfully:', response._id);
+      return response._id;
+
+    } catch (error: any) {
+      console.error('❌ Error creating order:', error);
+      setError(error.message || 'Error al procesar la orden');
+      return null;
+    } finally {
+      setProcessingPayment(false);
     }
   };
 
-  const validateStep = (step: number): boolean => {
-    switch (step) {
-      case 1:
-        if (!cart || cart.productos.length === 0) {
-          setError('Tu carrito está vacío');
-          return false;
+  const handleWompiPayment = async () => {
+    try {
+      console.log('🎯 Starting Wompi payment process...');
+      
+      // Validar monto mínimo para Wompi (1,500 COP)
+      const minimumAmount = 1500;
+      if (!cart?.total || cart.total < minimumAmount) {
+        showError(
+          'Monto insuficiente', 
+          `El monto mínimo para pagos con Wompi es $${minimumAmount.toLocaleString()} COP. Tu carrito tiene $${(cart?.total || 0).toLocaleString()} COP.`
+        );
+        return;
+      }
+      
+      // Primero crear la orden
+      const orderId = await handleCreateOrder();
+      if (!orderId) {
+        console.error('❌ No order ID received');
+        return;
+      }
+
+      console.log('✅ Order created, ID:', orderId);
+      setProcessingPayment(true);
+      
+      // Obtener la dirección correcta
+      let address: Address;
+      
+      if (useNewAddress) {
+        address = newAddress;
+        console.log('📍 Using new address:', address);
+      } else {
+        // Buscar la dirección seleccionada en el array de direcciones
+        const foundAddress = addresses.find(addr => addr._id === selectedAddress);
+        if (!foundAddress) {
+          throw new Error('No se ha seleccionado una dirección válida');
         }
-        return true;
-      case 2:
-        if (!selectedAddress) {
-          setError('Selecciona una dirección de entrega');
-          return false;
+        address = foundAddress;
+        console.log('📍 Using saved address:', address);
+      }
+
+      // Validar que tenemos los datos mínimos
+      if (!address.nombreDestinatario || !address.telefono || !address.direccion?.calle) {
+        throw new Error('Los datos de la dirección están incompletos');
+      }
+
+      console.log('💰 Cart total:', cart?.total);
+      console.log('👤 User data:', { email: user?.email, name: user?.nombre });
+
+      const paymentData = {
+        orderId: orderId,
+        amount: cart?.total || 0,
+        currency: 'COP',
+        customerData: {
+          fullName: address.nombreDestinatario,
+          email: user?.email || '',
+          phoneNumber: address.telefono,
+          legalId: '12345678', // Placeholder - se puede extender el tipo User si se necesita
+          legalIdType: 'CC'
+        },
+        shippingAddress: {
+          addressLine1: address.direccion.calle,
+          city: address.direccion.ciudad,
+          phoneNumber: address.telefono,
+          region: address.direccion.departamento,
+          postalCode: address.direccion.codigoPostal || '110111'
         }
-        return true;
-      case 3:
-        if (!selectedPaymentMethod) {
-          setError('Selecciona un método de pago');
-          return false;
-        }
+      };
+      
+      // Crear enlace de pago de Wompi
+      console.log('🔗 Creating Wompi payment link for order:', orderId);
+      console.log('📊 Payment data:', paymentData);
+      
+      const paymentResult = await wompiService.createPaymentLink(paymentData);
+      
+      console.log('💳 Payment result received:', JSON.stringify(paymentResult, null, 2));
+      
+      if (paymentResult.success && paymentResult.data?.paymentUrl) {
+        console.log('✅ Payment link created, redirecting to:', paymentResult.data.paymentUrl);
         
-        // Validaciones específicas por método de pago
-        if (selectedPaymentMethod === 'tarjeta_credito') {
-          const { numero, nombre, fechaVencimiento, cvv, numeroDocumento } = paymentData.tarjeta;
-          if (!numero || numero.length < 16) {
-            setError('Ingresa un número de tarjeta válido');
-            return false;
-          }
-          if (!nombre.trim()) {
-            setError('Ingresa el nombre como aparece en la tarjeta');
-            return false;
-          }
-          if (!fechaVencimiento || fechaVencimiento.length < 5) {
-            setError('Ingresa una fecha de vencimiento válida (MM/AA)');
-            return false;
-          }
-          if (!cvv || cvv.length < 3) {
-            setError('Ingresa un CVV válido');
-            return false;
-          }
-          if (!numeroDocumento.trim()) {
-            setError('Ingresa tu número de documento');
-            return false;
-          }
-        }
+        // Limpiar carrito
+        await cartService.clearCart();
         
-        if (selectedPaymentMethod === 'PSE') {
-          const { banco, numeroDocumento, email } = paymentData.pse;
-          if (!banco) {
-            setError('Selecciona tu banco');
-            return false;
-          }
-          if (!numeroDocumento.trim()) {
-            setError('Ingresa tu número de documento');
-            return false;
-          }
-          if (!email.trim() || !email.includes('@')) {
-            setError('Ingresa un email válido');
-            return false;
-          }
-        }
+        // Mostrar mensaje de éxito
+        showSuccess('Redirigiendo a Wompi', 'Te redirigiremos a la página de pago segura en unos momentos...');
         
-        if (selectedPaymentMethod === 'Nequi') {
-          const { telefono, pin } = paymentData.nequi;
-          if (!telefono || telefono.length < 10) {
-            setError('Ingresa un número de celular válido');
-            return false;
-          }
-          if (!pin || pin.length < 4) {
-            setError('Ingresa tu PIN de Nequi');
-            return false;
-          }
-        }
+        // Redirigir a Wompi después de un breve delay
+        setTimeout(() => {
+          window.location.href = paymentResult.data.paymentUrl;
+        }, 2000);
+      } else {
+        console.error('❌ Payment result error details:', JSON.stringify({
+          success: paymentResult.success,
+          error: paymentResult.error,
+          data: paymentResult.data,
+          message: paymentResult.message,
+          fullObject: paymentResult
+        }, null, 2));
         
-        return true;
-      default:
-        return true;
+        const errorMsg = paymentResult.error 
+          ? wompiService.getErrorMessage(paymentResult.error)
+          : paymentResult.message || 'Error desconocido al crear enlace de pago';
+        
+        setError(`Error al crear enlace de pago: ${errorMsg}`);
+        console.error('❌ Failed to create payment link:', paymentResult.error);
+      }
+
+    } catch (error: any) {
+      console.error('💥 Exception in Wompi payment:', error);
+      setError(error.message || 'Error al procesar el pago con Wompi');
+    } finally {
+      setProcessingPayment(false);
     }
   };
 
   const handleNextStep = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 4));
-      setError(null);
+    if (currentStep === 1 && validateForm()) {
+      setCurrentStep(2);
     }
   };
 
-  const handlePrevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
-    setError(null);
-  };
-
-  const handlePlaceOrder = async () => {
-    if (!validateStep(3)) return;
-
-    try {
-      setProcessing(true);
-      
-      // Datos del método de pago seleccionado
-      let paymentMethodData = {};
-      switch (selectedPaymentMethod) {
-        case 'tarjeta_credito':
-          paymentMethodData = {
-            tipo: selectedPaymentMethod,
-            ultimos4Digitos: paymentData.tarjeta.numero.slice(-4),
-            tipoTarjeta: 'visa',
-            datos: paymentData.tarjeta
-          };
-          break;
-        case 'PSE':
-          paymentMethodData = {
-            tipo: selectedPaymentMethod,
-            banco: paymentData.pse.banco,
-            datos: paymentData.pse
-          };
-          break;
-        case 'Nequi':
-          paymentMethodData = {
-            tipo: selectedPaymentMethod,
-            telefono: paymentData.nequi.telefono.slice(-4),
-            datos: paymentData.nequi
-          };
-          break;
-      }
-      
-      const order: OrderForm = {
-        productos: cart!.productos.map(item => ({
-          producto: item.producto._id,
-          cantidad: item.cantidad
-        })),
-        direccionEntrega: selectedAddress,
-        metodoPago: paymentMethodData as any,
-        usarDireccionGuardada: true,
-        comentarios: orderData.comentarios || ''
-      };
-
-      // Crear pedido real en el backend
-      const createdOrder = await orderService.createOrder(order);
-      
-      // Limpiar carrito después de crear el pedido
-      await cartService.clearCart();
-      
-      // Mostrar notificación de éxito como card
-      showSuccess(
-        '¡Pedido confirmado exitosamente!',
-        `Tu pedido #${createdOrder.numeroOrden} ha sido creado y está siendo procesado. Total: $${createdOrder.total.toLocaleString('es-CO')}`,
-        {
-          label: 'Ver pedido',
-          onClick: () => window.location.href = `/orders/${createdOrder._id}`
-        }
-      );
-      
-      // Redirigir después de un breve delay para mostrar la notificación
-      setTimeout(() => {
-        window.location.href = `/orders/${createdOrder._id}`;
-      }, 3000);
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error procesando pedido';
-      setError(errorMessage);
-      showError('Error en el pedido', errorMessage);
-    } finally {
-      setProcessing(false);
+  const handlePreviousStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  const handlePayment = () => {
+    if (!validateForm()) return;
+    
+    // Todos los métodos de pago usan Wompi
+    handleWompiPayment();
+  };
 
-  if (showAddressForm) {
+  if (loading) {
     return (
-      <AddressForm
-        onSubmit={handleAddressCreate}
-        onCancel={() => setShowAddressForm(false)}
-      />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Cargando información del checkout...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cart || !cart.productos || cart.productos.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Carrito vacío</h2>
+          <p className="text-gray-600 mb-6">No tienes productos en tu carrito</p>
+          <button
+            onClick={() => navigate('/products')}
+            className="btn-primary"
+          >
+            Ir a productos
+          </button>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="bg-white shadow-sm rounded-lg p-6">
-        <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
-        <p className="text-gray-600 mt-2">Completa tu pedido</p>
-        
-        {/* Banner de ambiente de pruebas */}
-        <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Finalizar Compra</h1>
+          <p className="text-gray-600 mt-2">Completa tu pedido de forma segura con Wompi</p>
+          <div className="mt-2 text-sm text-gray-500">
+            🔒 Pago 100% seguro • ✅ Certificado SSL • 💳 Múltiples métodos de pago
+          </div>
+        </div>
+
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <div className="flex items-center justify-center">
+            <div className="flex items-center space-x-4">
+              <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'
+              }`}>
+                {currentStep > 1 ? (
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  '1'
+                )}
+              </div>
+              <div className={`h-1 w-20 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+              <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+                currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-500'
+              }`}>
+                2
+              </div>
             </div>
-            <div className="ml-3">
-              <h3 className="text-lg font-semibold text-blue-900">
-                🧪 Ambiente de Pruebas Activo
-              </h3>
-              <p className="text-blue-700 mt-1">
-                Puedes usar <strong>cualquier dato</strong> en los formularios de pago. 
-                <strong> No se realizarán cobros reales.</strong> 
-                Métodos disponibles: Visa, Mastercard, PSE y Nequi.
-              </p>
+          </div>
+          <div className="flex justify-center mt-3">
+            <div className="flex space-x-20 text-sm font-medium">
+              <span className={currentStep >= 1 ? 'text-blue-600' : 'text-gray-500'}>
+                Dirección de entrega
+              </span>
+              <span className={currentStep >= 2 ? 'text-blue-600' : 'text-gray-500'}>
+                Método de pago
+              </span>
             </div>
           </div>
         </div>
-      </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
-        </div>
-      )}
-
-      {/* Progress bar */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
-        <div className="flex items-center justify-between">
-          {[
-            { step: 1, title: 'Carrito', icon: '🛒' },
-            { step: 2, title: 'Dirección', icon: '📍' },
-            { step: 3, title: 'Pago', icon: '💳' },
-            { step: 4, title: 'Confirmación', icon: '✅' }
-          ].map((item, index) => (
-            <div key={item.step} className="flex items-center">
-              <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                currentStep >= item.step 
-                  ? 'bg-blue-600 text-white' 
-                  : 'bg-gray-200 text-gray-600'
-              }`}>
-                {currentStep > item.step ? '✓' : item.step}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
               </div>
-              <span className="ml-2 text-sm font-medium text-gray-900">{item.title}</span>
-              {index < 3 && (
-                <div className={`w-16 h-1 mx-4 ${
-                  currentStep > item.step ? 'bg-blue-600' : 'bg-gray-200'
-                }`} />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main content */}
-        <div className="lg:col-span-2 space-y-6">
-          
-          {/* Step 1: Carrito */}
-          {currentStep === 1 && cart && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Revisar productos</h2>
-              <div className="space-y-4">
-                {cart.productos.map((item) => (
-                  <div key={item._id} className="flex items-center space-x-4 p-4 border rounded-lg">
-                    <img
-                      src={item.producto.imagenes?.[0] || '/placeholder.jpg'}
-                      alt={item.producto.nombre}
-                      className="w-24 h-24 object-cover rounded-lg shadow-sm"
-                    />
-                    <div className="flex-grow">
-                      <h3 className="font-medium text-gray-900 text-lg">{item.producto.nombre}</h3>
-                      <p className="text-sm text-gray-600">Cantidad: {item.cantidad}</p>
-                    </div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      ${item.subtotal.toLocaleString('es-CO')}
-                    </div>
-                  </div>
-                ))}
+              <div className="ml-3">
+                <p className="text-red-800 font-medium">Error</p>
+                <p className="text-red-700">{error}</p>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Step 2: Dirección */}
-          {currentStep === 2 && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">Dirección de entrega</h2>
-                <button
-                  onClick={() => setShowAddressForm(true)}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  + Nueva dirección
-                </button>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Formulario principal */}
+          <div className="lg:col-span-2">
+            <div className="bg-white shadow-sm rounded-lg p-6">
               
-              <div className="space-y-3">
-                {addresses.map((address) => (
-                  <div
-                    key={address._id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedAddress === address._id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedAddress(address._id)}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            checked={selectedAddress === address._id}
-                            onChange={() => setSelectedAddress(address._id)}
-                            className="text-blue-600"
-                          />
-                          <span className="font-medium text-gray-900">{address.alias}</span>
-                          {address.configuracion.esPredeterminada && (
-                            <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                              Predeterminada
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {address.nombreDestinatario} - {address.telefono}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {address.direccionCompleta}
-                        </p>
+              {/* Paso 1: Dirección de entrega */}
+              {currentStep === 1 && (
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+                    <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Dirección de entrega
+                  </h2>
+
+                  {/* Direcciones guardadas */}
+                  {addresses.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">
+                        Direcciones guardadas
+                      </h3>
+                      <div className="space-y-3">
+                        {addresses.map((address) => (
+                          <div
+                            key={address._id}
+                            className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                              selectedAddress === address._id && !useNewAddress
+                                ? 'border-blue-500 bg-blue-50 shadow-md'
+                                : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
+                            }`}
+                            onClick={() => {
+                              setSelectedAddress(address._id);
+                              setUseNewAddress(false);
+                            }}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center mb-1">
+                                  <p className="font-medium text-gray-900">{address.nombreDestinatario}</p>
+                                  {address.configuracion?.esPredeterminada && (
+                                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      Predeterminada
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-gray-600 mb-1">📞 {address.telefono}</p>
+                                <p className="text-sm text-gray-600">
+                                  📍 {address.direccion.calle}, {address.direccion.ciudad}, {address.direccion.departamento}
+                                </p>
+                                {address.instruccionesEntrega && (
+                                  <p className="text-sm text-gray-500 mt-2 italic">💬 {address.instruccionesEntrega}</p>
+                                )}
+                              </div>
+                              {selectedAddress === address._id && !useNewAddress && (
+                                <div className="flex-shrink-0 ml-3">
+                                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                  )}
 
-          {/* Step 3: Pago */}
-          {currentStep === 3 && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Método de pago</h2>
-              
-              <div className="space-y-3">
-                {paymentMethods.map((method) => (
-                  <div
-                    key={method.tipo}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedPaymentMethod === method.tipo
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => setSelectedPaymentMethod(method.tipo)}
-                  >
-                    <div className="flex items-center space-x-3">
+                  {/* Usar nueva dirección */}
+                  <div className="mb-6">
+                    <label className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                       <input
-                        type="radio"
-                        checked={selectedPaymentMethod === method.tipo}
-                        onChange={() => setSelectedPaymentMethod(method.tipo)}
-                        className="text-blue-600"
+                        type="checkbox"
+                        checked={useNewAddress}
+                        onChange={(e) => setUseNewAddress(e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                       />
-                      <div className="flex-grow">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-2xl">{method.icono}</span>
-                          <span className="font-medium text-gray-900">{method.nombre}</span>
+                      <span className="ml-3 text-gray-900 font-medium">
+                        ➕ Usar una nueva dirección
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Formulario nueva dirección */}
+                  {useNewAddress && (
+                    <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium text-gray-900 mb-4">Nueva dirección de entrega</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre completo *
+                          </label>
+                          <input
+                            type="text"
+                            value={newAddress.nombreDestinatario}
+                            onChange={(e) => setNewAddress(prev => ({
+                              ...prev,
+                              nombreDestinatario: e.target.value
+                            }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Ej: Juan Pérez"
+                            required
+                          />
                         </div>
-                        <p className="text-sm text-gray-600">{method.descripcion}</p>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Teléfono *
+                          </label>
+                          <input
+                            type="tel"
+                            value={newAddress.telefono}
+                            onChange={(e) => setNewAddress(prev => ({
+                              ...prev,
+                              telefono: e.target.value
+                            }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Ej: 300 123 4567"
+                            required
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Dirección completa *
+                          </label>
+                          <input
+                            type="text"
+                            value={newAddress.direccion.calle}
+                            onChange={(e) => setNewAddress(prev => ({
+                              ...prev,
+                              direccion: { ...prev.direccion, calle: e.target.value }
+                            }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Ej: Calle 123 #45-67, Apt 101"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Ciudad *
+                          </label>
+                          <input
+                            type="text"
+                            value={newAddress.direccion.ciudad}
+                            onChange={(e) => setNewAddress(prev => ({
+                              ...prev,
+                              direccion: { ...prev.direccion, ciudad: e.target.value }
+                            }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Ej: Bogotá"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Departamento *
+                          </label>
+                          <input
+                            type="text"
+                            value={newAddress.direccion.departamento}
+                            onChange={(e) => setNewAddress(prev => ({
+                              ...prev,
+                              direccion: { ...prev.direccion, departamento: e.target.value }
+                            }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Ej: Cundinamarca"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Comentarios */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Comentarios adicionales (opcional)
+                    </label>
+                    <textarea
+                      value={comments}
+                      onChange={(e) => setComments(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Instrucciones especiales para la entrega, punto de referencia, etc."
+                    />
+                  </div>
+
+                  {/* Términos y condiciones */}
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                    <label className="flex items-start">
+                      <input
+                        type="checkbox"
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        className="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                      />
+                      <span className="ml-3 text-sm text-gray-900">
+                        Acepto los{' '}
+                        <a href="/terminos" target="_blank" className="text-blue-600 hover:underline font-medium">
+                          términos y condiciones
+                        </a>{' '}
+                        y{' '}
+                        <a href="/privacidad" target="_blank" className="text-blue-600 hover:underline font-medium">
+                          política de privacidad
+                        </a>{' '}
+                        de Comercializadora SPG
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Botón siguiente */}
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleNextStep}
+                      disabled={!acceptedTerms}
+                      className={`btn-primary flex items-center ${
+                        !acceptedTerms ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <span>Continuar al pago</span>
+                      <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Paso 2: Método de pago */}
+              {currentStep === 2 && (
+                <div>
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                      <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                      Método de pago
+                    </h2>
+                    <button
+                      onClick={handlePreviousStep}
+                      className="text-blue-600 hover:text-blue-800 flex items-center transition-colors"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                      Volver
+                    </button>
+                  </div>
+
+                  {/* Opciones de pago con Wompi */}
+                  <div className="space-y-4 mb-6">
+                    {/* Enlace de pago Wompi - Todos los métodos */}
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                        paymentMethod === 'wompi'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
+                      }`}
+                      onClick={() => setPaymentMethod('wompi')}
+                    >
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
+                            {paymentMethod === 'wompi' && (
+                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-3 flex-1">
+                          <h3 className="font-medium text-gray-900">💳 Wompi - Todos los métodos disponibles</h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            PSE, Nequi, Daviplata, tarjetas de crédito/débito, efecty y más métodos de pago
+                          </p>
+                          <div className="flex items-center mt-2 space-x-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                              ⭐ Recomendado
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              🎯 Más opciones
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              🚀 Rápido
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* PSE */}
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                        paymentMethod === 'PSE'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
+                      }`}
+                      onClick={() => setPaymentMethod('PSE')}
+                    >
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
+                            {paymentMethod === 'PSE' && (
+                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-3 flex-1">
+                          <h3 className="font-medium text-gray-900">🏦 PSE - Pago Seguro en Línea</h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Paga directamente desde tu cuenta bancaria de forma segura
+                          </p>
+                          <div className="flex items-center mt-2 space-x-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              💰 Débito directo
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                              ✅ Sin comisión
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Nequi */}
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                        paymentMethod === 'Nequi'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
+                      }`}
+                      onClick={() => setPaymentMethod('Nequi')}
+                    >
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
+                            {paymentMethod === 'Nequi' && (
+                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-3 flex-1">
+                          <h3 className="font-medium text-gray-900">📱 Nequi</h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Paga desde tu app Nequi de forma rápida y segura
+                          </p>
+                          <div className="flex items-center mt-2 space-x-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800">
+                              ⚡ Instantáneo
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                              🔥 Popular
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Tarjeta de Crédito/Débito */}
+                    <div
+                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                        paymentMethod === 'wompi_card'
+                          ? 'border-blue-500 bg-blue-50 shadow-md'
+                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
+                      }`}
+                      onClick={() => setPaymentMethod('wompi_card')}
+                    >
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
+                            {paymentMethod === 'wompi_card' && (
+                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="ml-3 flex-1">
+                          <h3 className="font-medium text-gray-900">💳 Tarjeta de Crédito/Débito</h3>
+                          <p className="text-sm text-gray-600 mt-1">
+                            Visa, Mastercard, American Express, Diners Club
+                          </p>
+                          <div className="flex items-center mt-2 space-x-2">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                              🛡️ Crédito/Débito
+                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              🌍 Internacional
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
 
-              {/* Comentarios adicionales */}
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Comentarios adicionales (opcional)
-                </label>
-                <textarea
-                  value={orderData.comentarios || ''}
-                  onChange={(e) => setOrderData(prev => ({ ...prev, comentarios: e.target.value }))}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Instrucciones especiales para el delivery..."
-                />
-              </div>
-
-              {/* Formularios específicos de pago */}
-              {selectedPaymentMethod && (
-                <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Información de pago
-                  </h3>
-
-                  {/* Formulario para Tarjeta de Crédito */}
-                  {selectedPaymentMethod === 'tarjeta_credito' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Número de tarjeta
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentData.tarjeta.numero}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            tarjeta: { ...prev.tarjeta, numero: e.target.value }
-                          }))}
-                          placeholder="1234 5678 9012 3456"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Nombre en la tarjeta
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentData.tarjeta.nombre}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            tarjeta: { ...prev.tarjeta, nombre: e.target.value }
-                          }))}
-                          placeholder="Juan Pérez"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Fecha de vencimiento
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentData.tarjeta.fechaVencimiento}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            tarjeta: { ...prev.tarjeta, fechaVencimiento: e.target.value }
-                          }))}
-                          placeholder="MM/AA"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          CVV
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentData.tarjeta.cvv}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            tarjeta: { ...prev.tarjeta, cvv: e.target.value }
-                          }))}
-                          placeholder="123"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tipo de documento
-                        </label>
-                        <select
-                          value={paymentData.tarjeta.tipoDocumento}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            tarjeta: { ...prev.tarjeta, tipoDocumento: e.target.value }
-                          }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="cedula">Cédula de ciudadanía</option>
-                          <option value="cedula_extranjeria">Cédula de extranjería</option>
-                          <option value="nit">NIT</option>
-                          <option value="pasaporte">Pasaporte</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Número de documento
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentData.tarjeta.numeroDocumento}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            tarjeta: { ...prev.tarjeta, numeroDocumento: e.target.value }
-                          }))}
-                          placeholder="12345678"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Formulario para PSE */}
-                  {selectedPaymentMethod === 'PSE' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Banco
-                        </label>
-                        <select
-                          value={paymentData.pse.banco}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            pse: { ...prev.pse, banco: e.target.value }
-                          }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Selecciona tu banco</option>
-                          <option value="bancolombia">Bancolombia</option>
-                          <option value="banco_bogota">Banco de Bogotá</option>
-                          <option value="davivienda">Davivienda</option>
-                          <option value="bbva">BBVA Colombia</option>
-                          <option value="banco_popular">Banco Popular</option>
-                          <option value="colpatria">Scotiabank Colpatria</option>
-                          <option value="av_villas">Banco AV Villas</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tipo de persona
-                        </label>
-                        <select
-                          value={paymentData.pse.tipoPersona}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            pse: { ...prev.pse, tipoPersona: e.target.value }
-                          }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="natural">Persona Natural</option>
-                          <option value="juridica">Persona Jurídica</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tipo de documento
-                        </label>
-                        <select
-                          value={paymentData.pse.tipoDocumento}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            pse: { ...prev.pse, tipoDocumento: e.target.value }
-                          }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="cedula">Cédula de ciudadanía</option>
-                          <option value="cedula_extranjeria">Cédula de extranjería</option>
-                          <option value="nit">NIT</option>
-                          <option value="pasaporte">Pasaporte</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Número de documento
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentData.pse.numeroDocumento}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            pse: { ...prev.pse, numeroDocumento: e.target.value }
-                          }))}
-                          placeholder="12345678"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Email de confirmación
-                        </label>
-                        <input
-                          type="email"
-                          value={paymentData.pse.email}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            pse: { ...prev.pse, email: e.target.value }
-                          }))}
-                          placeholder="tu@email.com"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Formulario para Nequi */}
-                  {selectedPaymentMethod === 'Nequi' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Número de celular
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentData.nequi.telefono}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            nequi: { ...prev.nequi, telefono: e.target.value }
-                          }))}
-                          placeholder="3001234567"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          PIN de Nequi
-                        </label>
-                        <input
-                          type="password"
-                          value={paymentData.nequi.pin}
-                          onChange={(e) => setPaymentData(prev => ({
-                            ...prev,
-                            nequi: { ...prev.nequi, pin: e.target.value }
-                          }))}
-                          placeholder="****"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Nota de ambiente de pruebas */}
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start">
+                  {/* Información de seguridad */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                    <div className="flex">
                       <div className="flex-shrink-0">
-                        <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                       </div>
                       <div className="ml-3">
-                        <h3 className="text-sm font-medium text-blue-800">
-                          Ambiente de pruebas
+                        <h3 className="text-sm font-medium text-green-800">
+                          🔒 Pago 100% seguro con Wompi
                         </h3>
-                        <div className="mt-2 text-sm text-blue-700">
-                          <p>
-                            Este es un ambiente de pruebas. No se realizarán cobros reales. 
-                            Puedes usar cualquier dato para completar la transacción.
-                          </p>
+                        <div className="mt-2 text-sm text-green-700 space-y-1">
+                          <p>✅ Conexión encriptada SSL/TLS de nivel bancario</p>
+                          <p>✅ No almacenamos datos de tarjetas en nuestros servidores</p>
+                          <p>✅ Procesamiento PCI DSS certificado</p>
+                          <p>✅ Certificado por la Superintendencia Financiera de Colombia</p>
+                          <p>✅ Monitoreo 24/7 contra fraudes</p>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Información del proceso */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start gap-3">
+                      <svg className="h-5 w-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div>
+                        <h4 className="font-medium text-blue-900 mb-1">¿Cómo funciona el proceso de pago?</h4>
+                        <div className="text-sm text-blue-800 space-y-1">
+                          <p>1️⃣ Al hacer clic en "Pagar", serás redirigido a la plataforma segura de Wompi</p>
+                          <p>2️⃣ Elige tu método de pago preferido (PSE, Nequi, tarjeta, etc.)</p>
+                          <p>3️⃣ Completa el pago siguiendo las instrucciones</p>
+                          <p>4️⃣ Regresarás automáticamente con la confirmación</p>
+                          <p>5️⃣ Recibirás tu comprobante por email</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Botón de pago */}
+                  <div className="space-y-4">
+                    <div className="flex justify-end">
+                      <button
+                        onClick={handlePayment}
+                        disabled={processingPayment}
+                        className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed text-lg px-8 py-3"
+                      >
+                        {processingPayment ? (
+                          <>
+                            <LoadingSpinner size="sm" />
+                            <span className="ml-2">Procesando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            <span>Pagar ${cart.total.toLocaleString('es-CO')}</span>
+                            <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    
+                    {/* Indicador de estado del pago */}
+                    {processingPayment && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-600 border-t-transparent"></div>
+                          <div>
+                            <p className="text-blue-800 font-medium">🔄 Procesando tu pago...</p>
+                            <p className="text-blue-600 text-sm">
+                              Te redirigiremos a la plataforma de pago segura de Wompi en unos momentos. 
+                              No cierres esta ventana.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-          )}
-
-          {/* Step 4: Confirmación */}
-          {currentStep === 4 && (
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Confirmar pedido</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium text-gray-900">Dirección de entrega:</h3>
-                  <p className="text-sm text-gray-600">
-                    {addresses.find(a => a._id === selectedAddress)?.direccionCompleta}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium text-gray-900">Método de pago:</h3>
-                  <p className="text-sm text-gray-600">
-                    {paymentMethods.find(m => m.tipo === selectedPaymentMethod)?.nombre}
-                  </p>
-                </div>
-                
-                {orderData.comentarios && (
-                  <div>
-                    <h3 className="font-medium text-gray-900">Comentarios:</h3>
-                    <p className="text-sm text-gray-600">{orderData.comentarios}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Navigation buttons */}
-          <div className="flex justify-between">
-            <button
-              onClick={handlePrevStep}
-              disabled={currentStep === 1}
-              className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Anterior
-            </button>
-            
-            {currentStep < 4 ? (
-              <button
-                onClick={handleNextStep}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Siguiente
-              </button>
-            ) : (
-              <button
-                onClick={handlePlaceOrder}
-                disabled={processing}
-                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-              >
-                {processing ? 'Procesando...' : 'Confirmar Pedido'}
-              </button>
-            )}
           </div>
-        </div>
 
-        {/* Order summary */}
-        <div className="lg:col-span-1">
-          {cart && (
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen del Pedido</h3>
+          {/* Resumen del pedido */}
+          <div className="lg:col-span-1">
+            <div className="bg-white shadow-sm rounded-lg p-6 sticky top-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Resumen del pedido
+              </h3>
               
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
+              {/* Productos */}
+              <div className="space-y-3 mb-4">
+                {cart.productos.map((item, index) => (
+                  <div key={`${item.producto._id}-${index}`} className="flex justify-between text-sm border-b border-gray-100 pb-2">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900 line-clamp-2">{item.producto.nombre}</p>
+                      <p className="text-gray-600">Cantidad: {item.cantidad}</p>
+                      <p className="text-xs text-gray-500">
+                        ${item.precio.toLocaleString('es-CO')} c/u
+                      </p>
+                    </div>
+                    <div className="text-right ml-2">
+                      <p className="font-medium text-gray-900">
+                        ${(item.precio * item.cantidad).toLocaleString('es-CO')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <hr className="my-4" />
+
+              {/* Totales */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Subtotal:</span>
                   <span className="font-medium">${cart.subtotal.toLocaleString('es-CO')}</span>
                 </div>
-                
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Envío:</span>
+                  <span className="font-medium">${cart.costoEnvio.toLocaleString('es-CO')}</span>
+                </div>
                 {cart.descuentos > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Descuentos</span>
-                    <span>-${cart.descuentos.toLocaleString('es-CO')}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">Descuento:</span>
+                    <span className="font-medium text-green-600">-${cart.descuentos.toLocaleString('es-CO')}</span>
                   </div>
                 )}
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Envío</span>
-                  <span className="font-medium">
-                    {cart.costoEnvio === 0 ? 'Gratis' : `$${cart.costoEnvio.toLocaleString('es-CO')}`}
-                  </span>
+                <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200">
+                  <span>Total:</span>
+                  <span className="text-blue-600">${cart.total.toLocaleString('es-CO')}</span>
                 </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Impuestos</span>
-                  <span className="font-medium">${cart.impuestos.toLocaleString('es-CO')}</span>
+              </div>
+
+              {/* Dirección seleccionada */}
+              {currentStep === 2 && (
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                    <svg className="w-4 h-4 mr-1 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    Dirección de entrega:
+                  </h4>
+                  {useNewAddress ? (
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <p className="font-medium">{newAddress.nombreDestinatario}</p>
+                      <p>📞 {newAddress.telefono}</p>
+                      <p>📍 {newAddress.direccion.calle}</p>
+                      <p>{newAddress.direccion.ciudad}, {newAddress.direccion.departamento}</p>
+                    </div>
+                  ) : (
+                    selectedAddress && addresses.find(addr => addr._id === selectedAddress) && (
+                      <div className="text-sm text-gray-600 space-y-1">
+                        {(() => {
+                          const addr = addresses.find(a => a._id === selectedAddress)!;
+                          return (
+                            <>
+                              <p className="font-medium">{addr.nombreDestinatario}</p>
+                              <p>📞 {addr.telefono}</p>
+                              <p>📍 {addr.direccion.calle}</p>
+                              <p>{addr.direccion.ciudad}, {addr.direccion.departamento}</p>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )
+                  )}
                 </div>
-                
-                <hr className="my-4" />
-                
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span>
-                  <span className="text-green-600">${cart.total.toLocaleString('es-CO')}</span>
+              )}
+
+              {/* Método de pago seleccionado */}
+              {currentStep === 2 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+                    <svg className="w-4 h-4 mr-1 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Método de pago:
+                  </h4>
+                  <div className="text-sm text-gray-600">
+                    {paymentMethod === 'wompi' && '💳 Wompi - Todos los métodos'}
+                    {paymentMethod === 'PSE' && '🏦 PSE - Pago Seguro en Línea'}
+                    {paymentMethod === 'Nequi' && '📱 Nequi'}
+                    {paymentMethod === 'wompi_card' && '💳 Tarjeta de Crédito/Débito'}
+                  </div>
+                </div>
+              )}
+
+              {/* Badge de seguridad */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-center p-3 bg-green-50 rounded-lg">
+                  <div className="text-center">
+                    <svg className="w-8 h-8 text-green-600 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <p className="text-xs text-green-800 font-medium">Pago Seguro</p>
+                    <p className="text-xs text-green-600">SSL Certificado</p>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
-      </div>
-      
-      {/* Notification Cards Container */}
-      <div className="mt-6">
-        <NotificationCardContainer />
       </div>
     </div>
   );
 };
 
-export default CheckoutPage; 
+export default CheckoutPageOptimized;

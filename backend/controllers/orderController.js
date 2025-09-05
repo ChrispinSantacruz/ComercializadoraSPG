@@ -152,8 +152,13 @@ const crearPedido = async (req, res) => {
               datos: {
                 elementoId: nuevoPedido._id,
                 tipoElemento: 'pedido',
-                url: `/comerciante/pedidos/${nuevoPedido.numeroOrden}`,
-                accion: 'ver_pedido'
+                url: `/merchant/orders/${nuevoPedido._id}`,
+                accion: 'ver_pedido',
+                datosExtra: {
+                  numeroOrden: nuevoPedido.numeroOrden,
+                  cantidadProductos: productosComerciante.length,
+                  total: totalVenta
+                }
               },
               prioridad: 'alta',
               canales: {
@@ -525,8 +530,21 @@ const obtenerPedidoPorId = async (req, res) => {
       });
     }
 
-    // Verificar que el usuario sea el dueño del pedido o un admin
-    if (pedido.cliente._id.toString() !== req.usuario.id && req.usuario.rol !== 'administrador') {
+    // Verificar permisos
+    let tienePermiso = false;
+    
+    if (req.usuario.rol === 'administrador') {
+      tienePermiso = true;
+    } else if (req.usuario.rol === 'cliente') {
+      tienePermiso = pedido.cliente._id.toString() === req.usuario.id;
+    } else if (req.usuario.rol === 'comerciante') {
+      // Verificar si el comerciante tiene productos en este pedido
+      tienePermiso = pedido.productos.some(item => 
+        item.comerciante.toString() === req.usuario.id
+      );
+    }
+
+    if (!tienePermiso) {
       return res.status(403).json({
         exito: false,
         mensaje: 'No tienes permiso para ver este pedido'

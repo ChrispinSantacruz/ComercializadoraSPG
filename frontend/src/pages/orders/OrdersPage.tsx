@@ -8,6 +8,7 @@ import DeliveryConfirmationForm from '../../components/forms/DeliveryConfirmatio
 import ReviewForm from '../../components/forms/ReviewForm';
 import { Review } from '../../services/reviewService';
 import { getImageUrl, getFirstImageUrl } from '../../utils/imageUtils';
+import { getCompleteAddress } from '../../utils/addressUtils';
 
 const OrdersPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -333,7 +334,7 @@ const OrdersPage: React.FC = () => {
                   <div className="mt-4 border-t pt-4">
                     <h4 className="text-sm font-medium text-gray-900 mb-2">Dirección de entrega:</h4>
                     <p className="text-sm text-gray-600">
-                      {order.direccionEntrega.direccionCompleta}
+                      {getCompleteAddress(order.direccionEntrega)}
                     </p>
                   </div>
                 )}

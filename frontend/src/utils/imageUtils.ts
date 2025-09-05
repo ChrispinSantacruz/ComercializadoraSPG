@@ -6,47 +6,62 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 /**
  * Construye la URL completa para una imagen
- * @param imageUrl - URL de la imagen (puede ser relativa o completa)
+ * @param imageUrl - URL de la imagen (puede ser relativa o completa, string u objeto)
  * @returns URL completa para mostrar la imagen
  */
-export const getImageUrl = (imageUrl: string | null | undefined): string => {
+export const getImageUrl = (imageUrl: string | null | undefined | any): string => {
   // Si no hay URL, retornar imagen por defecto
   if (!imageUrl) {
     return '/images/default-product.svg';
   }
 
+  // Si imageUrl es un objeto, intentar extraer la URL
+  if (typeof imageUrl === 'object') {
+    // Buscar propiedades comunes que pueden contener la URL
+    const url = imageUrl.url || imageUrl.src || imageUrl.path || imageUrl.imagen;
+    if (url && typeof url === 'string') {
+      return getImageUrl(url); // Llamada recursiva con la URL extraída
+    }
+    // Si no encontramos URL válida en el objeto, usar imagen por defecto
+    console.warn('⚠️ Objeto de imagen no contiene URL válida:', imageUrl);
+    return '/images/default-product.svg';
+  }
+
+  // Asegurar que imageUrl es string y normalizar barras
+  const urlString = String(imageUrl).replace(/\\/g, '/'); // Convertir backslashes a forward slashes
+
   // Si es una URL de Cloudinary (completa), retornarla tal como está
-  if (imageUrl.startsWith('https://res.cloudinary.com/')) {
-    return imageUrl;
+  if (urlString.startsWith('https://res.cloudinary.com/')) {
+    return urlString;
   }
 
   // Si es una URL absoluta (http/https), retornarla tal como está
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
+  if (urlString.startsWith('http://') || urlString.startsWith('https://')) {
+    return urlString;
   }
 
   // Si es una URL relativa que empieza con /uploads/, construir la URL completa
-  if (imageUrl.startsWith('/uploads/')) {
-    const fullUrl = `${API_BASE_URL}${imageUrl}`;
+  if (urlString.startsWith('/uploads/')) {
+    const fullUrl = `${API_BASE_URL}${urlString}`;
     if (process.env.NODE_ENV === 'development') {
-      console.log('🖼️ Construyendo URL de imagen:', { original: imageUrl, final: fullUrl });
+      console.log('🖼️ Construyendo URL de imagen:', { original: urlString, final: fullUrl });
     }
     return fullUrl;
   }
 
   // Si es solo el nombre del archivo, agregar la ruta completa
-  if (!imageUrl.startsWith('/') && !imageUrl.includes('/')) {
-    const fullUrl = `${API_BASE_URL}/uploads/productos/${imageUrl}`;
+  if (!urlString.startsWith('/') && !urlString.includes('/')) {
+    const fullUrl = `${API_BASE_URL}/uploads/productos/${urlString}`;
     if (process.env.NODE_ENV === 'development') {
-      console.log('🖼️ Construyendo URL de imagen desde nombre:', { original: imageUrl, final: fullUrl });
+      console.log('🖼️ Construyendo URL de imagen desde nombre:', { original: urlString, final: fullUrl });
     }
     return fullUrl;
   }
 
   // Fallback: agregar base URL
-  const fullUrl = `${API_BASE_URL}${imageUrl}`;
+  const fullUrl = `${API_BASE_URL}${urlString}`;
   if (process.env.NODE_ENV === 'development') {
-    console.log('🖼️ Fallback URL de imagen:', { original: imageUrl, final: fullUrl });
+    console.log('🖼️ Fallback URL de imagen:', { original: urlString, final: fullUrl });
   }
   return fullUrl;
 };

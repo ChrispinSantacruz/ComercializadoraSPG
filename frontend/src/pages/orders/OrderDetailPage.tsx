@@ -5,6 +5,7 @@ import orderService from '../../services/orderService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { debugOrderImages } from '../../utils/debugUtils';
 import { getImageUrl, getFirstImageUrl } from '../../utils/imageUtils';
+import { formatDeliveryInfo } from '../../utils/addressUtils';
 
 const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -80,8 +81,12 @@ const OrderDetailPage: React.FC = () => {
         setOrder(orderData);
         setError(null);
         
-        // Debug de imágenes
-        debugOrderImages(orderData);
+        // Debug de imágenes - no fallar si hay errores en el debug
+        try {
+          debugOrderImages(orderData);
+        } catch (debugError) {
+          console.warn('Error en debug de imágenes (no afecta la funcionalidad):', debugError);
+        }
         
         return;
       } catch (backendError) {
@@ -122,9 +127,22 @@ const OrderDetailPage: React.FC = () => {
               fechaActualizacion: '',
               estadisticas: { vistas: 100, vendidos: 5, calificacionPromedio: 4.5, totalReseñas: 10 }
             },
+            comerciante: {
+              _id: 'merchant1',
+              nombre: 'Comerciante Demo',
+              email: 'comerciante@email.com',
+              telefono: '3001234567',
+              rol: 'comerciante',
+              verificado: true,
+              estado: 'activo',
+              fechaCreacion: '',
+              fechaActualizacion: ''
+            },
             cantidad: 1,
             precio: 850000,
-            subtotal: 850000
+            subtotal: 850000,
+            nombre: 'Smartphone Samsung Galaxy A54',
+            imagen: '/api/placeholder/300/300'
           }
         ],
         subtotal: 850000,
@@ -336,7 +354,28 @@ const OrderDetailPage: React.FC = () => {
                   <div key={item._id} className="flex items-center space-x-4 p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow">
                     <div className="flex-shrink-0">
                       <img
-                        src={getImageUrl(item.imagen) || getFirstImageUrl(item.producto?.imagenes)}
+                        src={(() => {
+                          // Intentar obtener la imagen del pedido primero
+                          if (item.imagen) {
+                            try {
+                              return getImageUrl(item.imagen);
+                            } catch (error) {
+                              console.warn('Error obteniendo imagen del pedido:', error);
+                            }
+                          }
+                          
+                          // Si no hay imagen del pedido o hay error, usar la del producto
+                          if (item.producto?.imagenes && item.producto.imagenes.length > 0) {
+                            try {
+                              return getFirstImageUrl(item.producto.imagenes);
+                            } catch (error) {
+                              console.warn('Error obteniendo imagen del producto:', error);
+                            }
+                          }
+                          
+                          // Fallback final
+                          return '/images/default-product.svg';
+                        })()}
                         alt={item.producto.nombre}
                         className="w-20 h-20 object-cover rounded-lg"
                         onError={(e) => {
@@ -421,18 +460,31 @@ const OrderDetailPage: React.FC = () => {
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h3 className="text-xl font-bold text-gray-900 mb-4">Información de entrega</h3>
               
-              <div className="space-y-3">
-                <div>
-                  <div className="text-sm font-medium text-gray-700">Destinatario</div>
-                  <div className="text-gray-900">{order.direccionEntrega.nombreDestinatario}</div>
-                  <div className="text-gray-600">{order.direccionEntrega.telefono}</div>
-                </div>
+              {(() => {
+                const deliveryInfo = formatDeliveryInfo(order.direccionEntrega);
                 
-                <div>
-                  <div className="text-sm font-medium text-gray-700">Dirección</div>
-                  <div className="text-gray-900">{order.direccionEntrega.direccionCompleta}</div>
-                </div>
-              </div>
+                return (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-sm font-medium text-gray-700">Destinatario</div>
+                      <div className="text-gray-900">{deliveryInfo.recipientName}</div>
+                      <div className="text-gray-600">{deliveryInfo.recipientPhone}</div>
+                    </div>
+                    
+                    <div>
+                      <div className="text-sm font-medium text-gray-700">Dirección</div>
+                      <div className="text-gray-900">{deliveryInfo.completeAddress}</div>
+                      
+                      {deliveryInfo.hasInstructions && (
+                        <div className="mt-2">
+                          <div className="text-sm font-medium text-gray-700">Instrucciones de entrega</div>
+                          <div className="text-gray-600 text-sm">{deliveryInfo.instructions}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Información de pago */}

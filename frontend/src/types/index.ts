@@ -226,6 +226,18 @@ export interface OrderProduct {
   imagen: string;
 }
 
+// Dirección específica para pedidos (como se guarda en el backend)
+export interface OrderDeliveryAddress {
+  nombre: string;
+  telefono?: string;
+  calle: string;
+  ciudad: string;
+  departamento: string;
+  codigoPostal?: string;
+  pais?: string;
+  instrucciones?: string;
+}
+
 export interface OrderTimeline {
   estado: string;
   titulo: string;
@@ -241,16 +253,16 @@ export interface Order {
   _id: string;
   numeroOrden: string;
   cliente: User;
-  productos: CartItem[];
+  productos: OrderProduct[];
   subtotal: number;
   impuestos: number;
   costoEnvio: number;
   descuentos: number;
   total: number;
   estado: 'pendiente' | 'confirmado' | 'procesando' | 'enviado' | 'entregado' | 'cancelado';
-  direccionEntrega: Address;
+  direccionEntrega: OrderDeliveryAddress | Address; // Puede ser cualquiera de las dos estructuras
   metodoPago: {
-    tipo: 'PSE' | 'Nequi' | 'tarjeta_credito';
+    tipo: 'PSE' | 'Nequi' | 'tarjeta_credito' | 'wompi' | 'wompi_card';
     estado: 'pendiente' | 'aprobado' | 'rechazado';
     transaccionId?: string;
     fechaPago?: string;
@@ -362,7 +374,7 @@ export interface AnalyticsData {
 
 // Pagos
 export interface PaymentMethod {
-  tipo: 'PSE' | 'Nequi' | 'tarjeta_credito';
+  tipo: 'PSE' | 'Nequi' | 'tarjeta_credito' | 'wompi' | 'wompi_card';
   nombre: string;
   descripcion: string;
   icono: string;
@@ -371,7 +383,7 @@ export interface PaymentMethod {
 }
 
 export interface PaymentRequest {
-  tipo: 'PSE' | 'Nequi' | 'tarjeta_credito';
+  tipo: 'PSE' | 'Nequi' | 'tarjeta_credito' | 'wompi' | 'wompi_card';
   monto: number;
   datos: any;
   pedidoId?: string;
@@ -458,7 +470,7 @@ export interface OrderForm {
   }>;
   direccionEntrega: string | AddressForm;
   metodoPago: {
-    tipo: 'PSE' | 'Nequi' | 'tarjeta_credito';
+    tipo: 'PSE' | 'Nequi' | 'tarjeta_credito' | 'wompi' | 'wompi_card';
     datos: any;
   };
   usarDireccionGuardada: boolean;

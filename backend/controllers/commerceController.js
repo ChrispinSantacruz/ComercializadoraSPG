@@ -47,11 +47,22 @@ const obtenerDashboard = async (req, res) => {
             estado: { $in: ['confirmado', 'procesando', 'enviado', 'entregado'] }
           }
         },
+        { $unwind: '$productos' },
+        {
+          $match: {
+            'productos.comerciante': comercianteId
+          }
+        },
         {
           $group: {
             _id: null,
-            totalVentas: { $sum: '$total' },
-            comisionComercio: { $sum: { $multiply: ['$total', 0.85] } } // 85% para el comerciante
+            totalVentas: { $sum: { $multiply: ['$productos.precio', '$productos.cantidad'] } },
+            totalProductos: { $sum: '$productos.cantidad' }
+          }
+        },
+        {
+          $addFields: {
+            comisionComercio: { $multiply: ['$totalVentas', 0.85] } // 85% para el comerciante
           }
         }
       ]),
@@ -65,6 +76,32 @@ const obtenerDashboard = async (req, res) => {
         recipient: comercianteId, 
         read: false 
       })
+    ]);
+
+    // Calcular ventas del mes anterior para comparación
+    const inicioMesAnterior = new Date(fechaActual.getFullYear(), fechaActual.getMonth() - 1, 1);
+    const finMesAnterior = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 0);
+    
+    const ventasDelMesAnterior = await Order.aggregate([
+      {
+        $match: {
+          'productos.comerciante': comercianteId,
+          fechaCreacion: { $gte: inicioMesAnterior, $lte: finMesAnterior },
+          estado: { $in: ['confirmado', 'procesando', 'enviado', 'entregado'] }
+        }
+      },
+      { $unwind: '$productos' },
+      {
+        $match: {
+          'productos.comerciante': comercianteId
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalVentas: { $sum: { $multiply: ['$productos.precio', '$productos.cantidad'] } }
+        }
+      }
     ]);
 
     // Productos más vendidos
@@ -109,13 +146,19 @@ const obtenerDashboard = async (req, res) => {
           estado: { $in: ['confirmado', 'procesando', 'enviado', 'entregado'] }
         }
       },
+      { $unwind: '$productos' },
+      {
+        $match: {
+          'productos.comerciante': comercianteId
+        }
+      },
       {
         $group: {
           _id: {
             $dateToString: { format: '%Y-%m-%d', date: '$fechaCreacion' }
           },
           ventas: { $sum: 1 },
-          ingresos: { $sum: '$total' }
+          ingresos: { $sum: { $multiply: ['$productos.precio', '$productos.cantidad'] } }
         }
       },
       { $sort: { '_id': 1 } }
@@ -127,7 +170,8 @@ const obtenerDashboard = async (req, res) => {
         $match: {
           producto: {
             $in: await Product.find({ comerciante: comercianteId }).distinct('_id')
-          }
+          },
+          estado: 'aprobada' // Solo reseñas aprobadas
         }
       },
       {
@@ -140,7 +184,17 @@ const obtenerDashboard = async (req, res) => {
           },
           sinResponder: {
             $sum: {
-              $cond: [{ $eq: ['$respuestaComerciante.respuesta', null] }, 1, 0]
+              $cond: [
+                { 
+                  $or: [
+                    { $eq: ['$respuestaComerciante', null] },
+                    { $eq: ['$respuestaComerciante.respuesta', null] },
+                    { $eq: ['$respuestaComerciante.respuesta', ''] }
+                  ]
+                }, 
+                1, 
+                0
+              ]
             }
           }
         }
@@ -166,6 +220,13 @@ const obtenerDashboard = async (req, res) => {
 
     // Procesamiento de datos
     const ventasInfo = ventasDelMes[0] || { totalVentas: 0, comisionComercio: 0 };
+    const ventasAnterioresInfo = ventasDelMesAnterior[0] || { totalVentas: 0 };
+    
+    // Calcular porcentaje de cambio
+    const porcentajeCambio = ventasAnterioresInfo.totalVentas > 0 
+      ? ((ventasInfo.totalVentas - ventasAnterioresInfo.totalVentas) / ventasAnterioresInfo.totalVentas) * 100 
+      : 0;
+    
     const reseñasInfo = estadisticasReseñas[0] || {
       totalReseñas: 0,
       promedioCalificacion: 0,
@@ -219,6 +280,8 @@ const obtenerDashboard = async (req, res) => {
         productosAgotados,
         pedidosDelMes,
         ventasDelMes: ventasInfo.totalVentas,
+        ventasDelMesAnterior: ventasAnterioresInfo.totalVentas,
+        porcentajeCambio: Math.round(porcentajeCambio * 100) / 100,
         comisionComercio: ventasInfo.comisionComercio,
         reseñasDelMes,
         notificacionesNoLeidas,
@@ -318,6 +381,8 @@ const obtenerAnalisisSales = async (req, res) => {
     // Análisis de ventas por período
     const ventasPorPeriodo = await Order.aggregate([
       { $match: matchFilter },
+      { $unwind: '$productos' },
+      { $match: { 'productos.comerciante': comercianteId } },
       {
         $group: {
           _id: {
@@ -326,9 +391,17 @@ const obtenerAnalisisSales = async (req, res) => {
               date: '$fechaCreacion' 
             }
           },
-          pedidos: { $sum: 1 },
-          ingresos: { $sum: '$total' },
-          productosVendidos: { $sum: { $size: '$productos' } }
+          pedidos: { $addToSet: '$_id' },
+          ingresos: { $sum: { $multiply: ['$productos.precio', '$productos.cantidad'] } },
+          productosVendidos: { $sum: '$productos.cantidad' }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          pedidos: { $size: '$pedidos' },
+          ingresos: 1,
+          productosVendidos: 1
         }
       },
       { $sort: { '_id': 1 } }
@@ -403,7 +476,7 @@ const obtenerAnalisisSales = async (req, res) => {
     // Calcular totales para porcentajes
     const totalPedidos = estadosPedidos.reduce((sum, item) => sum + item.cantidad, 0);
     estadosPedidos.forEach(item => {
-      item.porcentaje = ((item.cantidad / totalPedidos) * 100).toFixed(1);
+      item.porcentaje = totalPedidos > 0 ? ((item.cantidad / totalPedidos) * 100).toFixed(1) : 0;
     });
 
     // Clientes top
@@ -490,7 +563,7 @@ const obtenerAnalisisSales = async (req, res) => {
       .lean();
 
     // Análisis de crecimiento
-    const periodoAnterior = new Date(fechaInicio.getTime() - (fechaInicio.getTime() - new Date().getTime()));
+    const periodoAnterior = new Date(fechaInicio.getTime() - (new Date().getTime() - fechaInicio.getTime()));
     const ventasPeriodoAnterior = await Order.aggregate([
       {
         $match: {
@@ -499,10 +572,12 @@ const obtenerAnalisisSales = async (req, res) => {
           estado: { $in: ['confirmado', 'procesando', 'enviado', 'entregado'] }
         }
       },
+      { $unwind: '$productos' },
+      { $match: { 'productos.comerciante': comercianteId } },
       {
         $group: {
           _id: null,
-          totalVentas: { $sum: '$total' }
+          totalVentas: { $sum: { $multiply: ['$productos.precio', '$productos.cantidad'] } }
         }
       }
     ]);

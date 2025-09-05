@@ -73,7 +73,7 @@ const orderSchema = new mongoose.Schema({
   // Estado general del pedido
   estado: {
     type: String,
-    enum: ['pendiente', 'confirmado', 'procesando', 'enviado', 'entregado', 'cancelado', 'devuelto'],
+    enum: ['pendiente', 'confirmado', 'procesando', 'enviado', 'entregado', 'cancelado', 'devuelto', 'paid', 'payment_pending', 'payment_failed'],
     default: 'pendiente'
   },
   
@@ -108,7 +108,7 @@ const orderSchema = new mongoose.Schema({
   metodoPago: {
     tipo: {
       type: String,
-      enum: ['PSE', 'Nequi', 'tarjeta_credito'],
+      enum: ['PSE', 'Nequi', 'tarjeta_credito', 'wompi', 'wompi_card'],
       required: true
     },
     transaccionId: String,
@@ -119,6 +119,23 @@ const orderSchema = new mongoose.Schema({
     },
     fechaPago: Date,
     referencia: String
+  },
+
+  // Información específica de Wompi
+  paymentInfo: {
+    method: {
+      type: String,
+      enum: ['wompi', 'wompi_card']
+    },
+    paymentLinkId: String,
+    paymentUrl: String,
+    transactionId: String,
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'approved', 'declined', 'error']
+    },
+    paidAt: Date,
+    failureReason: String
   },
   
   // Información de envío
