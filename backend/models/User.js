@@ -49,7 +49,16 @@ const userSchema = new mongoose.Schema({
     enum: ['cliente', 'comerciante', 'administrador'],
     default: 'cliente'
   },
+  nombreEmpresa: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'El nombre de la empresa no puede exceder 100 caracteres']
+  },
   avatar: {
+    type: String,
+    default: null
+  },
+  banner: {
     type: String,
     default: null
   },
@@ -151,6 +160,8 @@ const userSchema = new mongoose.Schema({
 
   // Tokens para verificación y recuperación
   tokenVerificacion: String,
+  codigoVerificacion: String,
+  codigoExpiracion: Date,
   fechaVerificacion: Date,
   tokenRecuperacion: String,
   fechaRecuperacion: Date,
@@ -175,7 +186,8 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ rol: 1 });
 userSchema.index({ estado: 1 });
 userSchema.index({ 'configuracion.pais': 1 });
-userSchema.index({ proveedor: 1, proveedorId: 1 }, { unique: true, sparse: true });
+// Índice para proveedores sociales (solo se crea cuando proveedorId existe)
+userSchema.index({ proveedorId: 1 }, { unique: true, sparse: true });
 
 // Middleware para hash de contraseña antes de guardar
 userSchema.pre('save', async function(next) {

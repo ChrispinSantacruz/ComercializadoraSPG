@@ -93,13 +93,15 @@ const Navbar: React.FC = () => {
             
             {/* Lado izquierdo - Logo y navegación */}
             <div className="flex items-center space-x-8">
-              {/* Logo SPG */}
+              {/* Logo SurAndino */}
               <Link to="/" className="flex items-center space-x-3">
-                <div className="h-12 w-12 bg-orange-500 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-2xl">SPG</span>
-                </div>
+                <img 
+                  src="/images/Logo.png" 
+                  alt="SurAndino Logo" 
+                  className="h-12 w-12 rounded-lg shadow-lg object-contain"
+                />
                 <div className="hidden md:block">
-                  <h1 className="text-2xl font-bold text-white">Comercializadora SPG</h1>
+                  <h1 className="text-2xl font-bold text-white">SurAndino</h1>
                   <p className="text-orange-200 text-sm">Tu plataforma de confianza</p>
                 </div>
               </Link>

@@ -36,12 +36,22 @@ router.post('/forgot-password', authController.solicitarRecuperacionPassword);
 router.put('/reset-password/:token', authController.restablecerPassword);
 
 // @route   POST /api/auth/verify-email
-// @desc    Verify email
+// @desc    Verify email with token (legacy)
 // @access  Public
 router.post('/verify-email', authController.verificarEmail);
 
+// @route   POST /api/auth/verificar-codigo
+// @desc    Verify email with code
+// @access  Public
+router.post('/verificar-codigo', authController.verificarEmailConCodigo);
+
+// @route   POST /api/auth/reenviar-codigo
+// @desc    Resend verification code
+// @access  Public
+router.post('/reenviar-codigo', authController.reenviarCodigoVerificacion);
+
 // @route   POST /api/auth/resend-verification
-// @desc    Resend verification email
+// @desc    Resend verification email (legacy)
 // @access  Public
 router.post('/resend-verification', authController.reenviarVerificacion);
 

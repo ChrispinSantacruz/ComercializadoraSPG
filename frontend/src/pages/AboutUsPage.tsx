@@ -131,7 +131,7 @@ const AboutUsPage: React.FC = () => {
                 onClick={() => navigate('/register')}
                 className="bg-white text-blue-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                🚀 Únete a SPG
+                🚀 Únete a SurAndino
               </button>
             </div>
           </div>
@@ -146,7 +146,7 @@ const AboutUsPage: React.FC = () => {
             <div className="text-6xl mb-6">🎯</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Nuestra Misión</h3>
             <p className="text-gray-600 leading-relaxed">
-              En Comercializadora SPG Pasto trabajamos con pasión para conectar a las personas 
+              En SurAndino trabajamos con pasión para conectar a las personas 
               con lo que realmente necesitan y desean, ofreciendo soluciones innovadoras y accesibles 
               que respondan a sus gustos, estilos de vida y aspiraciones. Nos proyectamos como una 
               plataforma dinámica y confiable que, a través del comercio consciente y el uso de 
@@ -173,7 +173,7 @@ const AboutUsPage: React.FC = () => {
             <div className="text-6xl mb-6">📖</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Nuestra Historia</h3>
             <p className="text-gray-600 leading-relaxed">
-              Fundada en 2024 en la hermosa ciudad de Pasto, Comercializadora SPG nació 
+              Fundada en 2024 en la hermosa ciudad de Pasto, SurAndino nació 
               del sueño de empoderar a las mujeres emprendedoras y comerciantes locales. 
               Basamos nuestra labor en la calidad, la honestidad, el trato justo, 
               la entrega oportuna y la construcción de una marca con propósito y prestigio 
@@ -201,7 +201,7 @@ const AboutUsPage: React.FC = () => {
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Nuestros Valores 💎</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Los principios que guían cada decisión y acción en SPG
+              Los principios que guían cada decisión y acción en SurAndino
             </p>
           </div>
           
@@ -221,7 +221,7 @@ const AboutUsPage: React.FC = () => {
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Nuestro Equipo 👥</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Las personas apasionadas que hacen posible SPG cada día
+              Las personas apasionadas que hacen posible SurAndino cada día
             </p>
           </div>
           

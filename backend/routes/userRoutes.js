@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const { protect } = require('../middlewares/auth');
-const { subirAvatar } = require('../middlewares/upload');
+const { subirAvatar, subirBanner } = require('../middlewares/upload');
 
 // @route   GET /api/users/profile
 // @desc    Get user profile
@@ -63,6 +63,11 @@ router.put('/notification-settings', protect, userController.actualizarConfigura
 // @desc    Upload user avatar
 // @access  Private
 router.post('/avatar', protect, subirAvatar, userController.subirAvatar);
+
+// @route   POST /api/users/banner
+// @desc    Upload merchant banner
+// @access  Private
+router.post('/banner', protect, subirBanner, userController.subirBanner);
 
 // @route   DELETE /api/users/account
 // @desc    Delete user account

@@ -46,57 +46,83 @@ const WompiReturnPageFixed: React.FC = () => {
       const status = searchParams.get('status');
       const orderId = searchParams.get('orderId');
       const reference = searchParams.get('reference');
-      const env = searchParams.get('env');
-
+      
       console.log('📥 Payment return parameters:', {
         transactionId,
         status,
         orderId,
-        reference,
-        env,
-        fullUrl: window.location.href,
-        allParams: Object.fromEntries(searchParams.entries())
+        reference
       });
 
       // Si tenemos los parámetros básicos, el pago se procesó
       if (transactionId || orderId || reference) {
         console.log('✅ Payment processed, parameters found');
         
+        // Determinar el estado del pago basado en los parámetros
+        let paymentStatus: PaymentResult['status'] = 'APPROVED';
+        let message = 'Pago procesado exitosamente';
+        
+        // Verificar si hay indicadores de error o rechazo en la URL
+        if (status && (status.toLowerCase() === 'declined' || status.toLowerCase() === 'error')) {
+          paymentStatus = status.toUpperCase() as PaymentResult['status'];
+          message = status.toLowerCase() === 'declined' 
+            ? 'El pago fue rechazado' 
+            : 'Ocurrió un error durante el proceso de pago';
+        }
+        
         const result: PaymentResult = {
-          status: 'APPROVED', // Asumimos exitoso si llegó aquí con parámetros
+          status: paymentStatus,
           transactionId: transactionId || undefined,
           orderId: orderId || reference || undefined,
           reference: reference || orderId || undefined,
-          message: 'Pago procesado exitosamente'
+          message: message
         };
 
         setPaymentResult(result);
         
-        // Mostrar mensaje de éxito
-        showSuccess(
-          '¡Pago exitoso!', 
-          'Tu pago ha sido procesado correctamente. Te redirigiremos a tu pedido.'
-        );
+        // Mostrar mensaje según el estado
+        if (paymentStatus === 'APPROVED') {
+          showSuccess(
+            '¡Pago exitoso!', 
+            'Tu pago ha sido procesado correctamente. Te redirigiremos a tu pedido.'
+          );
 
-        // Redirigir después de mostrar el mensaje
-        setTimeout(() => {
-          if (orderId || reference) {
-            navigate(`/orders/${orderId || reference}`, { 
-              state: { 
-                paymentSuccess: true,
-                transactionId: transactionId,
-                fromPayment: true 
+          // Redirigir después de mostrar el mensaje
+          setTimeout(() => {
+            if (orderId || reference) {
+              navigate(`/orders/${orderId || reference}`, { 
+                state: { 
+                  paymentSuccess: true,
+                  transactionId: transactionId,
+                  fromPayment: true 
+                }
+              });
+            } else {
+              navigate('/orders', { 
+                state: { 
+                  paymentSuccess: true,
+                  message: 'Tu pago ha sido procesado exitosamente'
+                }
+              });
+            }
+          }, 3000);
+        } else {
+          // Pago rechazado o con error
+          showError(
+            paymentStatus === 'DECLINED' ? 'Pago rechazado' : 'Error en el pago',
+            message
+          );
+
+          // Redirigir al carrito o productos después de mostrar el error
+          setTimeout(() => {
+            navigate('/cart', {
+              state: {
+                paymentFailed: true,
+                reason: message
               }
             });
-          } else {
-            navigate('/orders', { 
-              state: { 
-                paymentSuccess: true,
-                message: 'Tu pago ha sido procesado exitosamente'
-              }
-            });
-          }
-        }, 3000);
+          }, 4000);
+        }
 
       } else {
         console.log('⚠️  No payment parameters found');
@@ -265,22 +291,6 @@ const WompiReturnPageFixed: React.FC = () => {
             </div>
           ) : null}
         </div>
-        
-        {/* Información de debug para desarrollo */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Debug Info:</h3>
-            <pre className="text-xs text-gray-600 whitespace-pre-wrap">
-              {JSON.stringify({
-                url: window.location.href,
-                params: Object.fromEntries(searchParams.entries()),
-                paymentResult,
-                error,
-                processingTime: formatTime(processingTime)
-              }, null, 2)}
-            </pre>
-          </div>
-        )}
       </div>
     </div>
   );

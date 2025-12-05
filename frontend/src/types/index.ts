@@ -30,7 +30,9 @@ export interface User {
     pais?: string;
   };
   rol: 'cliente' | 'comerciante' | 'administrador';
+  nombreEmpresa?: string;
   avatar?: string;
+  banner?: string;
   verificado: boolean;
   estado: 'activo' | 'inactivo' | 'bloqueado';
   fechaCreacion: string;
@@ -65,6 +67,7 @@ export interface RegisterData {
   password: string;
   telefono?: string;
   rol?: 'cliente' | 'comerciante';
+  nombreEmpresa?: string;
 }
 
 // Productos

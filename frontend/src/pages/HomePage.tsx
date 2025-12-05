@@ -12,7 +12,7 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Bienvenido a Comercializadora SPG
+              Bienvenido a SurAndino
             </h1>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
               Tu plataforma de confianza para compras y ventas en línea
@@ -55,6 +55,46 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Banner Promocional */}
+      <section className="py-0 bg-gradient-to-br from-purple-600 via-blue-600 to-purple-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="relative overflow-hidden rounded-xl">
+            <img 
+              src="/images/banner-home.png" 
+              alt="¡Descubre lo Mejor en SurAndino! - Productos de calidad, precios increíbles y envío a todo el país"
+              className="w-full h-auto object-cover"
+              onError={(e) => {
+                // Fallback si la imagen no se encuentra
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.innerHTML = `
+                  <div class="bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 text-white py-16 px-8 text-center rounded-xl">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-4">¡Descubre lo Mejor en SurAndino!</h2>
+                    <p class="text-xl md:text-2xl mb-8 flex items-center justify-center gap-3">
+                      <span class="text-4xl">🛍️</span>
+                      <span>Productos de calidad, precios increíbles y envío a todo el país</span>
+                    </p>
+                    <div class="flex justify-center gap-8 mt-8">
+                      <div class="flex items-center gap-2">
+                        <span class="text-2xl">💳</span>
+                        <span class="text-lg">Compra Segura</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-2xl">🚚</span>
+                        <span class="text-lg">Envío Nacional</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-2xl">⭐</span>
+                        <span class="text-lg">Mejor Calidad</span>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }}
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Stats Section */}
       <section className="py-12 bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,7 +124,7 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              ¿Por qué elegir Comercializadora SPG?
+              ¿Por qué elegir SurAndino?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Ofrecemos la mejor experiencia para compradores y vendedores

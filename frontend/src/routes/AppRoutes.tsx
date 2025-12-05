@@ -12,6 +12,7 @@ import NewHomePage from '../pages/NewHomePage';
 import AboutUsPage from '../pages/AboutUsPage';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
 import OAuthCallback from '../pages/auth/OAuthCallback';
 import ProductsPage from '../pages/products/ProductsPage';
 import ProductDetailPage from '../pages/products/ProductDetailPage';
@@ -105,6 +106,7 @@ const AppRoutes: React.FC = () => {
             isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
           } 
         />
+        <Route path="verificar-email" element={<VerifyEmailPage />} />
         
         {/* Callback de OAuth - siempre accesible */}
         <Route path="auth/callback" element={<OAuthCallback />} />

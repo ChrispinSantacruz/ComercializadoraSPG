@@ -37,9 +37,9 @@ const NotificationCenter: React.FC = () => {
       setLoading(true);
       const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
       
-      // Obtener token del sistema de autenticación principal
-      let token = null;
+      // Obtener token del authStore (disponible desde useAuthStore)
       const authStorage = localStorage.getItem('auth-storage');
+      let token = null;
       
       if (authStorage) {
         try {
@@ -50,19 +50,14 @@ const NotificationCenter: React.FC = () => {
         }
       }
       
-      // Fallback: buscar token directo
-      if (!token) {
-        token = localStorage.getItem('token');
-      }
-      
       console.log('🔍 Cargando notificaciones...');
       console.log('🔍 API URL:', apiUrl);
       console.log('🔍 Token presente:', !!token);
-      console.log('🔍 Auth storage:', !!authStorage);
       
       if (!token) {
         console.error('❌ No hay token de autenticación');
-        console.log('💡 Intenta hacer login primero');
+        console.log('💡 Usuario no autenticado, no se pueden cargar notificaciones');
+        setLoading(false);
         return;
       }
       

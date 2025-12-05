@@ -62,11 +62,13 @@ const DashboardLayout: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-sm">SPG</span>
-              </div>
+              <img 
+                src="/images/Logo.png" 
+                alt="SurAndino Logo" 
+                className="h-8 w-8 rounded-lg object-contain mr-3"
+              />
               <h1 className="text-xl font-bold text-gray-900">
-                Comercializadora SPG
+                SurAndino
               </h1>
             </Link>
 

@@ -9,7 +9,8 @@
     "test": "jest",
     "setup": "node setupWompi.js",
     "test-wompi": "node testWompiComplete.js",
-    "test-wompi-simple": "node testWompiSimple.js"
+    "test-wompi-simple": "node testWompiSimple.js",
+    "test-email": "node probarEmail.js"
   },
   "keywords": [
     "comercializadora",

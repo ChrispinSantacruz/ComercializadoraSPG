@@ -69,11 +69,20 @@ const actualizarPerfil = async (req, res) => {
       }
     });
 
+    // Si hay archivo de avatar subido
+    if (req.file) {
+      actualizaciones.avatar = `/uploads/avatars/${req.file.filename}`;
+    }
+
     const usuario = await User.findByIdAndUpdate(
       req.usuario.id,
       { ...actualizaciones, fechaActualizacion: new Date() },
       { new: true, runValidators: true }
     ).select('-password');
+
+    if (!usuario) {
+      return errorResponse(res, 'Usuario no encontrado', 404);
+    }
 
     successResponse(res, 'Perfil actualizado exitosamente', usuario);
 
@@ -476,6 +485,42 @@ const subirAvatar = async (req, res) => {
   }
 };
 
+// @desc    Subir banner de comerciante
+// @route   POST /api/users/banner
+// @access  Private
+const subirBanner = async (req, res) => {
+  try {
+    // Verificar que el usuario sea comerciante
+    const usuario = await User.findById(req.usuario.id);
+    
+    if (usuario.rol !== 'comerciante') {
+      return errorResponse(res, 'Solo los comerciantes pueden subir banners', 403);
+    }
+
+    if (!req.file) {
+      return errorResponse(res, 'No se ha subido ningún archivo', 400);
+    }
+
+    // La URL del banner ya está procesada por el middleware
+    const bannerUrl = req.file.path;
+
+    const usuarioActualizado = await User.findByIdAndUpdate(
+      req.usuario.id,
+      { 
+        banner: bannerUrl,
+        fechaActualizacion: new Date()
+      },
+      { new: true }
+    ).select('-password');
+
+    successResponse(res, 'Banner actualizado exitosamente', usuarioActualizado);
+
+  } catch (error) {
+    console.error('Error subiendo banner:', error);
+    errorResponse(res, 'Error interno del servidor', 500);
+  }
+};
+
 // @desc    Eliminar cuenta de usuario
 // @route   DELETE /api/users/account
 // @access  Private
@@ -541,5 +586,6 @@ module.exports = {
   obtenerHistorialPedidos,
   actualizarConfiguracionNotificaciones,
   subirAvatar,
+  subirBanner,
   eliminarCuenta
 }; 

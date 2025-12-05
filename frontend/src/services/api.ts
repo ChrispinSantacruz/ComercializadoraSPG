@@ -59,11 +59,21 @@ api.interceptors.response.use(
     }
 
     // Formatear error para mostrar al usuario
-    const errorMessage = 
-      (error.response?.data as any)?.mensaje || 
-      (error.response?.data as any)?.message || 
+    const errorData = error.response?.data as any;
+    let errorMessage = 
+      errorData?.mensaje || 
+      errorData?.message || 
       error.message || 
       'Error de conexión';
+    
+    // Si hay errores de validación específicos, incluirlos
+    if (errorData?.errores && Array.isArray(errorData.errores)) {
+      // Extraer solo los mensajes de error
+      const mensajesError = errorData.errores.map((err: any) => 
+        err.mensaje || err.msg || err.message || JSON.stringify(err)
+      );
+      errorMessage = mensajesError.join(', ');
+    }
 
     return Promise.reject(new Error(errorMessage));
   }

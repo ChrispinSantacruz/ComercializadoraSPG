@@ -178,6 +178,15 @@ const subirAvatar = multer({
   }
 }).single('avatar');
 
+// Middleware para subir banner de comerciante
+const subirBanner = multer({
+  storage: productStorage, // Reutilizamos el storage de productos
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB
+  }
+}).single('banner');
+
 // Middleware para subir imagen de categoría
 const subirImagenCategoria = multer({
   storage: categoryStorage,
@@ -273,6 +282,7 @@ module.exports = {
   subirImagenesProducto: crearMiddlewareSubida(subirImagenesProducto),
   subirImagenPrincipalProducto: crearMiddlewareSubida(subirImagenPrincipalProducto),
   subirAvatar: crearMiddlewareSubida(subirAvatar),
+  subirBanner: crearMiddlewareSubida(subirBanner),
   subirImagenCategoria: crearMiddlewareSubida(subirImagenCategoria),
   subirImagenesReseña: crearMiddlewareSubida(subirImagenesReseña),
   eliminarImagen,

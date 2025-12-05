@@ -17,7 +17,8 @@ export const authService = {
   // Obtener perfil
   getProfile: async (): Promise<User> => {
     const response = await api.get('/users/profile');
-    return handleApiResponse<User>(response);
+    const data = handleApiResponse<{ usuario: User; estadisticas: any }>(response);
+    return data.usuario;
   },
 
   // Actualizar perfil
@@ -49,13 +50,25 @@ export const authService = {
     return handleApiResponse<void>(response);
   },
 
-  // Verificar email
+  // Verificar email (legacy con token)
   verifyEmail: async (token: string): Promise<void> => {
     const response = await api.post('/auth/verify-email', { token });
     return handleApiResponse<void>(response);
   },
 
-  // Reenviar email de verificación
+  // Verificar email con código
+  verifyEmailWithCode: async (email: string, codigo: string): Promise<AuthResponse> => {
+    const response = await api.post('/auth/verificar-codigo', { email, codigo });
+    return handleApiResponse<AuthResponse>(response);
+  },
+
+  // Reenviar código de verificación
+  resendVerificationCode: async (email: string): Promise<void> => {
+    const response = await api.post('/auth/reenviar-codigo', { email });
+    return handleApiResponse<void>(response);
+  },
+
+  // Reenviar email de verificación (legacy)
   resendVerificationEmail: async (): Promise<void> => {
     const response = await api.post('/auth/resend-verification');
     return handleApiResponse<void>(response);
@@ -74,6 +87,19 @@ export const authService = {
     formData.append('avatar', file);
     
     const response = await api.post('/users/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return handleApiResponse<User>(response);
+  },
+
+  // Subir banner (para comerciantes)
+  uploadBanner: async (file: File): Promise<User> => {
+    const formData = new FormData();
+    formData.append('banner', file);
+    
+    const response = await api.post('/users/banner', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

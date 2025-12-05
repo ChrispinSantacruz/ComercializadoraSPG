@@ -6,12 +6,15 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import NotificationCenter from '../../components/profile/NotificationCenter';
 
 const ProfilePage: React.FC = () => {
-  const { user, updateUser } = useAuthStore();
+  const { user, updateUser, checkAuth } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [formData, setFormData] = useState({
     nombre: user?.nombre || '',
@@ -115,6 +118,83 @@ const ProfilePage: React.FC = () => {
     setSuccess(null);
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor selecciona una imagen válida');
+      return;
+    }
+
+    // Validar tamaño (máximo 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError('La imagen no debe superar los 2MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const updatedUser = await authService.uploadAvatar(file);
+      updateUser(updatedUser);
+      setSuccess('Foto de perfil actualizada correctamente');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al subir la foto de perfil');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor selecciona una imagen válida');
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('La imagen no debe superar los 5MB');
+      return;
+    }
+
+    setUploadingBanner(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const updatedUser = await authService.uploadBanner(file);
+      updateUser(updatedUser);
+      setSuccess('Banner actualizado correctamente');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al subir el banner');
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
+  const handleRefreshProfile = async () => {
+    setRefreshing(true);
+    setError(null);
+    setSuccess(null);
+    
+    try {
+      await checkAuth();
+      setSuccess('Perfil actualizado correctamente');
+    } catch (err) {
+      setError('Error al actualizar el perfil');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const QuickActions = () => {
     if (user.rol === 'comerciante') {
       return (
@@ -215,37 +295,112 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {/* Header del perfil */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8">
-          <div className="flex items-center space-x-6">
-            <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-              {user.avatar ? (
+        {/* Header del perfil con banner si es comerciante */}
+        <div className="relative">
+          {/* Banner para comerciantes */}
+          {user.rol === 'comerciante' && (
+            <div className="relative h-48 bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
+              {user.banner ? (
                 <img 
-                  src={user.avatar} 
-                  alt={user.nombre}
+                  src={user.banner} 
+                  alt="Banner"
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-white text-2xl font-bold">
-                  {user.nombre.charAt(0).toUpperCase()}
-                </span>
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-white text-lg">Sube un banner para tu negocio</p>
+                </div>
               )}
+              <div className="absolute bottom-4 right-4">
+                <label className="bg-white/90 hover:bg-white text-blue-600 px-4 py-2 rounded-lg cursor-pointer transition-colors inline-flex items-center gap-2">
+                  {uploadingBanner ? '⏳ Subiendo...' : '📸 Cambiar Banner'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleBannerUpload}
+                    disabled={uploadingBanner}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             </div>
-            
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-white mb-2">Mi Perfil</h1>
-              <p className="text-blue-100">
-                {user.nombre} • {user.rol.charAt(0).toUpperCase() + user.rol.slice(1)}
-              </p>
-              {user.verificado ? (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
-                  Email verificado
-                </span>
-              ) : (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-2">
-                  Email pendiente de verificar
-                </span>
-              )}
+          )}
+          
+          {/* Header del perfil */}
+          <div className={`${user.rol === 'comerciante' ? 'bg-white' : 'bg-gradient-to-r from-blue-600 to-blue-800'} px-6 py-8`}>
+            <div className="flex items-center space-x-6">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
+                  {user.avatar ? (
+                    <img 
+                      src={user.avatar} 
+                      alt={user.nombre}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className={`${user.rol === 'comerciante' ? 'text-blue-600' : 'text-white'} text-2xl font-bold`}>
+                      {user.nombre?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  )}
+                </div>
+                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
+                  {uploadingAvatar ? '⏳' : '📷'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    disabled={uploadingAvatar}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h1 className={`text-3xl font-bold ${user.rol === 'comerciante' ? 'text-gray-900' : 'text-white'} mb-2`}>
+                      Mi Perfil
+                    </h1>
+                    <p className={user.rol === 'comerciante' ? 'text-gray-600' : 'text-blue-100'}>
+                      {user.nombre || 'Usuario'} • {user.rol?.charAt(0).toUpperCase() + user.rol?.slice(1) || 'Cliente'}
+                    </p>
+                    {user.verificado ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
+                        Email verificado
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-2">
+                        Email pendiente de verificar
+                      </span>
+                    )}
+                  </div>
+                  
+                  <button
+                    onClick={handleRefreshProfile}
+                    disabled={refreshing}
+                    className={`ml-4 p-2 rounded-lg transition-colors ${
+                      user.rol === 'comerciante' 
+                        ? 'bg-white hover:bg-gray-50 text-gray-700' 
+                        : 'bg-blue-700 hover:bg-blue-800 text-white'
+                    } ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title="Actualizar perfil"
+                  >
+                    <svg 
+                      className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

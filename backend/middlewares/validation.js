@@ -24,10 +24,9 @@ const validarRegistroUsuario = [
   body('nombre')
     .notEmpty()
     .withMessage('El nombre es requerido')
-    .isLength({ min: 2, max: 50 })
-    .withMessage('El nombre debe tener entre 2 y 50 caracteres')
-    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
-    .withMessage('El nombre solo puede contener letras y espacios'),
+    .isLength({ min: 2, max: 100 })
+    .withMessage('El nombre debe tener entre 2 y 100 caracteres')
+    .trim(),
     
   body('email')
     .isEmail()
@@ -36,9 +35,7 @@ const validarRegistroUsuario = [
     
   body('password')
     .isLength({ min: 6 })
-    .withMessage('La contraseña debe tener al menos 6 caracteres')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('La contraseña debe contener al menos una letra minúscula, una mayúscula y un número'),
+    .withMessage('La contraseña debe tener al menos 6 caracteres'),
     
   body('telefono')
     .optional()
@@ -49,6 +46,11 @@ const validarRegistroUsuario = [
     .optional()
     .isIn(['cliente', 'comerciante'])
     .withMessage('Rol inválido. Solo se permite cliente o comerciante'),
+    
+  body('nombreEmpresa')
+    .optional()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('El nombre de la empresa debe tener entre 2 y 100 caracteres'),
     
   manejarErroresValidacion
 ];

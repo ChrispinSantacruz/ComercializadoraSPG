@@ -59,11 +59,7 @@ const CheckoutPageOptimized: React.FC = () => {
   });
 
   // Estados para método de pago
-  const [paymentMethod, setPaymentMethod] = useState<'wompi' | 'PSE' | 'Nequi' | 'wompi_card'>('wompi');
-
-  useEffect(() => {
-    loadInitialData();
-  }, []);
+  const [paymentMethod] = useState<'wompi'>('wompi');
 
   const loadInitialData = async () => {
     try {
@@ -95,6 +91,11 @@ const CheckoutPageOptimized: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const validateForm = (): boolean => {
     setError('');
@@ -598,7 +599,7 @@ const CheckoutPageOptimized: React.FC = () => {
                         <a href="/privacidad" target="_blank" className="text-blue-600 hover:underline font-medium">
                           política de privacidad
                         </a>{' '}
-                        de Comercializadora SPG
+                        de SurAndino
                       </span>
                     </label>
                   </div>
@@ -645,139 +646,41 @@ const CheckoutPageOptimized: React.FC = () => {
                   {/* Opciones de pago con Wompi */}
                   <div className="space-y-4 mb-6">
                     {/* Enlace de pago Wompi - Todos los métodos */}
-                    <div
-                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                        paymentMethod === 'wompi'
-                          ? 'border-blue-500 bg-blue-50 shadow-md'
-                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
-                      }`}
-                      onClick={() => setPaymentMethod('wompi')}
-                    >
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
-                            {paymentMethod === 'wompi' && (
-                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="ml-3 flex-1">
-                          <h3 className="font-medium text-gray-900">💳 Wompi - Todos los métodos disponibles</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            PSE, Nequi, Daviplata, tarjetas de crédito/débito, efecty y más métodos de pago
-                          </p>
-                          <div className="flex items-center mt-2 space-x-2">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                    <div className="p-6 border-2 border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl shadow-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center mb-2">
+                            <h3 className="text-xl font-bold text-gray-900">💳 Wompi</h3>
+                            <span className="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-500 text-white animate-pulse">
                               ⭐ Recomendado
                             </span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                              🎯 Más opciones
-                            </span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                              🚀 Rápido
-                            </span>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* PSE */}
-                    <div
-                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                        paymentMethod === 'PSE'
-                          ? 'border-blue-500 bg-blue-50 shadow-md'
-                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
-                      }`}
-                      onClick={() => setPaymentMethod('PSE')}
-                    >
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
-                            {paymentMethod === 'PSE' && (
-                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="ml-3 flex-1">
-                          <h3 className="font-medium text-gray-900">🏦 PSE - Pago Seguro en Línea</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Paga directamente desde tu cuenta bancaria de forma segura
+                          <p className="text-sm text-gray-700 font-medium mb-3">
+                            Todos los métodos de pago disponibles
                           </p>
-                          <div className="flex items-center mt-2 space-x-2">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                              💰 Débito directo
-                            </span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                              ✅ Sin comisión
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Nequi */}
-                    <div
-                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                        paymentMethod === 'Nequi'
-                          ? 'border-blue-500 bg-blue-50 shadow-md'
-                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
-                      }`}
-                      onClick={() => setPaymentMethod('Nequi')}
-                    >
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
-                            {paymentMethod === 'Nequi' && (
-                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="ml-3 flex-1">
-                          <h3 className="font-medium text-gray-900">📱 Nequi</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Paga desde tu app Nequi de forma rápida y segura
+                          <p className="text-sm text-gray-600 mb-4">
+                            PSE, Nequi, Daviplata, tarjetas de crédito/débito, Efecty y más opciones seguras
                           </p>
-                          <div className="flex items-center mt-2 space-x-2">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-pink-100 text-pink-800">
-                              ⚡ Instantáneo
+                          <div className="flex items-center space-x-3 text-sm">
+                            <span className="flex items-center text-blue-700 font-medium">
+                              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              🎯 Múltiples opciones
                             </span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                              🔥 Popular
+                            <span className="flex items-center text-purple-700 font-medium">
+                              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              🚀 Rápido y seguro
                             </span>
                           </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Tarjeta de Crédito/Débito */}
-                    <div
-                      className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                        paymentMethod === 'wompi_card'
-                          ? 'border-blue-500 bg-blue-50 shadow-md'
-                          : 'border-gray-300 hover:border-gray-400 hover:shadow-sm'
-                      }`}
-                      onClick={() => setPaymentMethod('wompi_card')}
-                    >
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
-                            {paymentMethod === 'wompi_card' && (
-                              <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="ml-3 flex-1">
-                          <h3 className="font-medium text-gray-900">💳 Tarjeta de Crédito/Débito</h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            Visa, Mastercard, American Express, Diners Club
-                          </p>
-                          <div className="flex items-center mt-2 space-x-2">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                              🛡️ Crédito/Débito
-                            </span>
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                              🌍 Internacional
-                            </span>
+                        <div className="flex-shrink-0 ml-4">
+                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
                           </div>
                         </div>
                       </div>
@@ -814,13 +717,30 @@ const CheckoutPageOptimized: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <div>
-                        <h4 className="font-medium text-blue-900 mb-1">¿Cómo funciona el proceso de pago?</h4>
-                        <div className="text-sm text-blue-800 space-y-1">
+                        <h4 className="font-medium text-blue-900 mb-2">¿Cómo funciona el proceso de pago?</h4>
+                        <div className="text-sm text-blue-800 space-y-1 mb-3">
                           <p>1️⃣ Al hacer clic en "Pagar", serás redirigido a la plataforma segura de Wompi</p>
                           <p>2️⃣ Elige tu método de pago preferido (PSE, Nequi, tarjeta, etc.)</p>
                           <p>3️⃣ Completa el pago siguiendo las instrucciones</p>
                           <p>4️⃣ Regresarás automáticamente con la confirmación</p>
                           <p>5️⃣ Recibirás tu comprobante por email</p>
+                        </div>
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mt-3">
+                          <p className="font-semibold text-yellow-900 mb-2">🧪 Modo Sandbox - Datos de Prueba:</p>
+                          <div className="text-xs text-yellow-800 space-y-1">
+                            <p><strong>✅ RECOMENDADO - Nequi/PSE:</strong></p>
+                            <p>• Selecciona Nequi o PSE en el widget de Wompi</p>
+                            <p>• Usa cualquier número de celular o banco</p>
+                            <p>• Estos métodos son más estables en sandbox</p>
+                            <hr className="my-2 border-yellow-300" />
+                            <p><strong>💳 Tarjeta de prueba (puede tener errores):</strong></p>
+                            <p>• Número: 4242424242424242 (sin espacios)</p>
+                            <p>• CVC: 123 | Fecha: 12/25 o posterior</p>
+                            <p>• Nombre: TEST CARD</p>
+                            <p className="text-xs text-yellow-700 mt-2 italic font-semibold">
+                              ⚠️ Si el widget de tarjetas no funciona, usa Nequi o PSE que son más estables en sandbox.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -974,10 +894,7 @@ const CheckoutPageOptimized: React.FC = () => {
                     Método de pago:
                   </h4>
                   <div className="text-sm text-gray-600">
-                    {paymentMethod === 'wompi' && '💳 Wompi - Todos los métodos'}
-                    {paymentMethod === 'PSE' && '🏦 PSE - Pago Seguro en Línea'}
-                    {paymentMethod === 'Nequi' && '📱 Nequi'}
-                    {paymentMethod === 'wompi_card' && '💳 Tarjeta de Crédito/Débito'}
+                    💳 Wompi - Todos los métodos disponibles
                   </div>
                 </div>
               )}

@@ -19,6 +19,7 @@ interface AuthState {
     password: string;
     telefono?: string;
     rol?: 'cliente' | 'comerciante';
+    nombreEmpresa?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;

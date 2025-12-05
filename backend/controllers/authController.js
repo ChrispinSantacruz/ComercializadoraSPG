@@ -16,7 +16,7 @@ const passport = require('passport');
 // @access  Public
 const registrarUsuario = async (req, res, next) => {
   try {
-    const { nombre, email, password, telefono, rol = 'cliente' } = req.body;
+    const { nombre, email, password, telefono, rol = 'cliente', nombreEmpresa } = req.body;
 
     // Verificar si el usuario ya existe
     const usuarioExistente = await User.findOne({ email });
@@ -31,27 +31,38 @@ const registrarUsuario = async (req, res, next) => {
       email,
       password,
       telefono,
-      rol
+      rol,
+      nombreEmpresa: rol === 'comerciante' ? nombreEmpresa : undefined,
+      proveedor: 'local'
+      // No establecer proveedorId para usuarios locales (se queda undefined)
     });
 
     await usuario.save();
 
-    // Generar token de verificación
+    // Generar código de verificación de 6 dígitos
+    const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Establecer expiración del código (15 minutos)
+    const codigoExpiracion = new Date(Date.now() + 15 * 60 * 1000);
+    
+    // Generar token de verificación (como respaldo)
     const tokenVerificacion = generarTokenVerificacion(usuario._id, email);
     
-    // Guardar token en el usuario
+    // Guardar datos de verificación en el usuario
     usuario.tokenVerificacion = tokenVerificacion;
+    usuario.codigoVerificacion = codigoVerificacion;
+    usuario.codigoExpiracion = codigoExpiracion;
     await usuario.save();
 
-    // Enviar email de bienvenida
+    // Enviar email de bienvenida con código
     try {
-      await enviarEmailBienvenida(email, nombre, tokenVerificacion);
+      await enviarEmailBienvenida(email, nombre, codigoVerificacion);
     } catch (emailError) {
       console.error('Error enviando email de bienvenida:', emailError);
       // No fallar el registro si el email falla
     }
 
-    successResponse(res, 'Usuario registrado exitosamente. Revisa tu email para verificar tu cuenta.', {
+    successResponse(res, 'Usuario registrado exitosamente. Revisa tu email para obtener el código de verificación.', {
       usuario: {
         id: usuario._id,
         nombre: usuario.nombre,
@@ -173,7 +184,108 @@ const obtenerPerfilActual = async (req, res, next) => {
   }
 };
 
-// @desc    Verificar email
+// @desc    Verificar email con código
+// @route   POST /api/auth/verificar-codigo
+// @access  Public
+const verificarEmailConCodigo = async (req, res, next) => {
+  try {
+    const { email, codigo } = req.body;
+
+    if (!email || !codigo) {
+      return errorResponse(res, 'Email y código son requeridos', 400);
+    }
+
+    // Buscar usuario
+    const usuario = await User.findOne({ email });
+
+    if (!usuario) {
+      return errorResponse(res, 'Usuario no encontrado', 404);
+    }
+
+    // Verificar que el código coincida
+    if (usuario.codigoVerificacion !== codigo) {
+      return errorResponse(res, 'Código de verificación incorrecto', 400);
+    }
+
+    // Verificar que el código no haya expirado
+    if (new Date() > usuario.codigoExpiracion) {
+      return errorResponse(res, 'El código de verificación ha expirado. Solicita uno nuevo.', 400);
+    }
+
+    // Activar usuario
+    usuario.verificado = true;
+    usuario.estado = 'activo';
+    usuario.fechaVerificacion = new Date();
+    usuario.codigoVerificacion = undefined;
+    usuario.codigoExpiracion = undefined;
+    usuario.tokenVerificacion = undefined;
+    await usuario.save();
+
+    // Generar token de acceso
+    const token = generarTokenAcceso(usuario._id, usuario.rol);
+
+    successResponse(res, 'Email verificado exitosamente. Tu cuenta ha sido activada.', {
+      usuario: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        rol: usuario.rol,
+        verificado: usuario.verificado
+      },
+      token
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reenviar código de verificación
+// @route   POST /api/auth/reenviar-codigo
+// @access  Public
+const reenviarCodigoVerificacion = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return errorResponse(res, 'Email es requerido', 400);
+    }
+
+    // Buscar usuario
+    const usuario = await User.findOne({ email });
+
+    if (!usuario) {
+      return errorResponse(res, 'Usuario no encontrado', 404);
+    }
+
+    if (usuario.verificado) {
+      return errorResponse(res, 'Este usuario ya está verificado', 400);
+    }
+
+    // Generar nuevo código de verificación
+    const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
+    const codigoExpiracion = new Date(Date.now() + 15 * 60 * 1000);
+
+    usuario.codigoVerificacion = codigoVerificacion;
+    usuario.codigoExpiracion = codigoExpiracion;
+    await usuario.save();
+
+    // Enviar email con nuevo código
+    try {
+      await enviarEmailBienvenida(email, usuario.nombre, codigoVerificacion);
+    } catch (emailError) {
+      console.error('Error enviando email:', emailError);
+      return errorResponse(res, 'Error al enviar el email de verificación', 500);
+    }
+
+    successResponse(res, 'Código de verificación reenviado. Revisa tu email.');
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Verificar email con token (método anterior, mantener compatibilidad)
 // @route   POST /api/auth/verificar-email
 // @access  Public
 const verificarEmail = async (req, res, next) => {
@@ -220,6 +332,7 @@ const verificarEmail = async (req, res, next) => {
     }
 
     // Activar usuario
+    usuario.verificado = true;
     usuario.estado = 'activo';
     usuario.fechaVerificacion = new Date();
     usuario.tokenVerificacion = undefined;
@@ -496,6 +609,8 @@ module.exports = {
   cerrarSesion,
   obtenerPerfilActual,
   verificarEmail,
+  verificarEmailConCodigo,
+  reenviarCodigoVerificacion,
   solicitarRecuperacionPassword,
   restablecerPassword,
   cambiarPassword,

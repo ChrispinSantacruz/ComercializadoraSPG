@@ -12,7 +12,8 @@ const RegisterPage: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    rol: 'cliente' as 'cliente' | 'comerciante'
+    rol: 'cliente' as 'cliente' | 'comerciante',
+    nombreEmpresa: ''
   });
 
   const [formErrors, setFormErrors] = useState<string[]>([]);
@@ -40,6 +41,10 @@ const RegisterPage: React.FC = () => {
       errors.push('Las contraseñas no coinciden');
     }
 
+    if (formData.rol === 'comerciante' && !formData.nombreEmpresa.trim()) {
+      errors.push('El nombre de la empresa es requerido para comerciantes');
+    }
+
     setFormErrors(errors);
     return errors.length === 0;
   };
@@ -54,15 +59,30 @@ const RegisterPage: React.FC = () => {
     try {
       console.log('Enviando datos de registro:', formData);
       
-      await register({
-        nombre: formData.nombre,
-        email: formData.email,
-        password: formData.password,
-        rol: formData.rol
+      // Llamar al endpoint de registro (ya no autentica automáticamente)
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre: formData.nombre,
+          email: formData.email,
+          password: formData.password,
+          rol: formData.rol,
+          nombreEmpresa: formData.rol === 'comerciante' ? formData.nombreEmpresa : undefined
+        })
       });
 
-      // Si el registro es exitoso, redirigir al home
-      navigate('/');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.mensaje || 'Error al crear la cuenta');
+      }
+
+      // Redirigir a la página de verificación con el email
+      navigate(`/verificar-email?email=${encodeURIComponent(formData.email)}`);
+      
     } catch (error: any) {
       console.error('Error en el registro:', error);
       setFormErrors([error.message || 'Error al crear la cuenta']);
@@ -170,6 +190,25 @@ const RegisterPage: React.FC = () => {
                 <option value="comerciante">Comerciante</option>
               </select>
             </div>
+
+            {formData.rol === 'comerciante' && (
+              <div>
+                <label htmlFor="nombreEmpresa" className="block text-sm font-medium text-gray-700">
+                  Nombre de la empresa *
+                </label>
+                <input
+                  id="nombreEmpresa"
+                  name="nombreEmpresa"
+                  type="text"
+                  required={formData.rol === 'comerciante'}
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="Nombre de tu empresa o negocio"
+                  value={formData.nombreEmpresa}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
