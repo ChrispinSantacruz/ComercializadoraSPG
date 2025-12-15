@@ -1,6 +1,8 @@
 const wompiService = require('../services/wompiService');
 const Order = require('../models/Order');
 const Notification = require('../models/Notification');
+const Product = require('../models/Product');
+const { sendOrderConfirmationEmail } = require('../utils/email');
 
 const wompiController = {
     /**
@@ -351,6 +353,21 @@ const wompiController = {
                         order.paymentInfo.paymentStatus = 'approved';
                         order.paymentInfo.paidAt = new Date();
                         
+                        // AHORA SÍ descontar el stock de los productos
+                        for (const item of order.productos) {
+                            try {
+                                await Product.findByIdAndUpdate(item.producto, {
+                                    $inc: { 
+                                        stock: -item.cantidad,
+                                        'estadisticas.vendidos': item.cantidad
+                                    }
+                                });
+                                console.log(`✅ Stock actualizado para producto ${item.producto}: -${item.cantidad}`);
+                            } catch (stockError) {
+                                console.error(`❌ Error actualizando stock del producto ${item.producto}:`, stockError);
+                            }
+                        }
+                        
                         // Crear notificación de pago exitoso
                         await Notification.create({
                             user: order.cliente,
@@ -359,6 +376,20 @@ const wompiController = {
                             message: `Tu pago por $${order.total.toLocaleString()} ha sido procesado exitosamente`,
                             relatedOrder: order._id
                         });
+                        
+                        // Enviar comprobante de pago por email
+                        try {
+                            // Obtener datos completos de la orden con población
+                            const orderWithDetails = await Order.findById(order._id)
+                                .populate('cliente', 'nombre email')
+                                .populate('productos.producto', 'nombre imagenPrincipal');
+                            
+                            await sendOrderConfirmationEmail(orderWithDetails);
+                            console.log(`📧 Email de confirmación enviado a ${orderWithDetails.cliente.email}`);
+                        } catch (emailError) {
+                            console.error('❌ Error enviando email de confirmación:', emailError);
+                            // No fallar el webhook por error de email
+                        }
                         break;
 
                     case 'DECLINED':

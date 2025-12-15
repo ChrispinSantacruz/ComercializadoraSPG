@@ -153,23 +153,7 @@ const MerchantDashboard: React.FC = () => {
 
       {/* Métricas principales mejoradas */}
       {dashboardMetrics && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm font-medium">Ingresos del Mes</p>
-                <p className="text-2xl font-bold">${dashboardMetrics.ingresosMensuales.toLocaleString('es-CO')}</p>
-                <p className={`text-sm ${
-                  dashboardMetrics.crecimientoMensual >= 0 ? 'text-green-100' : 'text-red-200'
-                }`}>
-                  {dashboardMetrics.crecimientoMensual >= 0 ? '↗️' : '↘️'} 
-                  {Math.abs(dashboardMetrics.crecimientoMensual).toFixed(1)}% vs mes anterior
-                </p>
-              </div>
-              <div className="text-3xl">💰</div>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -226,6 +210,167 @@ const MerchantDashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Perfil del Vendedor y Productos Publicados */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Perfil del Vendedor */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <span className="text-3xl mr-3">👤</span>
+              Mi Perfil de Vendedor
+            </h2>
+            <button
+              onClick={() => window.location.href = '/profile'}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            >
+              Editar Perfil
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div className="flex-shrink-0">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  {stats?.resumenGeneral ? stats.resumenGeneral.totalProductos : '0'}
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">Productos Activos</h3>
+                <p className="text-gray-600">Total de productos en tu catálogo</p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+              <div className="flex-shrink-0">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  {stats?.resumenGeneral ? stats.resumenGeneral.pedidosDelMes : '0'}
+                </div>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-gray-900">Pedidos Este Mes</h3>
+                <p className="text-gray-600">Ventas realizadas en los últimos 30 días</p>
+              </div>
+            </div>
+
+            {reviewStats && (
+              <div className="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                    {reviewStats.calificacionPromedio.toFixed(1)}
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">Calificación Promedio</h3>
+                  <p className="text-gray-600">{reviewStats.totalReseñas} reseñas de clientes</p>
+                  <div className="flex items-center mt-1">
+                    {[...Array(5)].map((_, i) => (
+                      <svg
+                        key={i}
+                        className={`w-5 h-5 ${
+                          i < Math.round(reviewStats.calificacionPromedio)
+                            ? 'text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Productos Publicados */}
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <span className="text-3xl mr-3">📦</span>
+              Mis Productos
+            </h2>
+            <button
+              onClick={() => window.location.href = '/merchant/products/new'}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span>Nuevo Producto</span>
+            </button>
+          </div>
+
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {merchantProducts && merchantProducts.length > 0 ? (
+              merchantProducts.slice(0, 5).map((producto) => (
+                <div
+                  key={producto._id}
+                  className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                  onClick={() => window.location.href = `/productos/${producto._id}`}
+                >
+                  <div className="flex-shrink-0">
+                    {producto.imagenes && producto.imagenes.length > 0 ? (
+                      <img
+                        src={producto.imagenes[0]}
+                        alt={producto.nombre}
+                        className="w-16 h-16 object-cover rounded-lg"
+                        onError={(e) => {
+                          e.currentTarget.src = '/images/placeholder-product.png';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <span className="text-gray-400 text-2xl">📷</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-gray-900 truncate">
+                      {producto.nombre}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      ${producto.precio.toLocaleString('es-CO')}
+                    </p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        producto.stock > 10
+                          ? 'bg-green-100 text-green-800'
+                          : producto.stock > 0
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        Stock: {producto.stock}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500 mb-4">Aún no tienes productos publicados</p>
+                <button
+                  onClick={() => window.location.href = '/merchant/products/new'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Publicar mi primer producto
+                </button>
+              </div>
+            )}
+
+            {merchantProducts && merchantProducts.length > 5 && (
+              <button
+                onClick={() => window.location.href = '/merchant/products'}
+                className="w-full py-2 text-center text-blue-600 hover:text-blue-800 font-medium text-sm"
+              >
+                Ver todos los productos ({merchantProducts.length})
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Alert de confirmaciones pendientes */}
       {realOrders.some(o => o.estado === 'entregado' && !(o as any).entrega?.confirmada) && (

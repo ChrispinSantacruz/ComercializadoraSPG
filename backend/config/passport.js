@@ -83,7 +83,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   clientID: process.env.FACEBOOK_APP_ID,
   clientSecret: process.env.FACEBOOK_APP_SECRET,
   callbackURL: "/api/auth/facebook/callback",
-  profileFields: ['id', 'displayName', 'emails', 'photos']
+  profileFields: ['id', 'displayName', 'name', 'photos'] // Removido 'emails' para evitar errores de permisos
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     // Buscar usuario existente con este Facebook ID
@@ -101,24 +101,10 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
       return done(null, user);
     }
 
-    // Verificar si existe un usuario con el mismo email
-    const email = profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null;
+    // Generar un email temporal si no está disponible
+    // El usuario podrá actualizarlo después en su perfil
+    const email = `facebook_${profile.id}@temp.com`;
     
-    if (email) {
-      const existingUser = await User.findOne({ email });
-      
-      if (existingUser) {
-        // Usuario existe con email pero sin Facebook, vincular cuenta
-        existingUser.proveedor = 'facebook';
-        existingUser.proveedorId = profile.id;
-        if (profile.photos && profile.photos.length > 0) {
-          existingUser.fotoPerfilSocial = profile.photos[0].value;
-        }
-        await existingUser.save();
-        return done(null, existingUser);
-      }
-    }
-
     // Crear nuevo usuario
     const newUser = new User({
       nombre: profile.displayName,
@@ -127,7 +113,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
       proveedorId: profile.id,
       fotoPerfilSocial: profile.photos && profile.photos.length > 0 ? profile.photos[0].value : null,
       estado: 'activo',
-      verificado: true // Los usuarios de Facebook ya están verificados
+      verificado: false // Marcar como no verificado si es email temporal
     });
 
     await newUser.save();

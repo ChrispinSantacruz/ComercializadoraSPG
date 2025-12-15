@@ -61,12 +61,12 @@ const crearTransporter = () => {
 // Plantillas de email
 const plantillas = {
   bienvenida: (nombre, codigoVerificacion) => ({
-    subject: '🎉 ¡Bienvenido a SurAndino!',
+    subject: '🎉 ¡Bienvenido a AndinoExpress!',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">¡Bienvenido a SurAndino!</h1>
-          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Tu plataforma comercial de confianza</p>
+          <h1 style="color: white; margin: 0; font-size: 28px;">¡Bienvenido a AndinoExpress!</h1>
+          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Tu plataforma de comercio rápido y confiable</p>
         </div>
         <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
           <h2 style="color: #111827; margin-top: 0;">Hola ${nombre},</h2>
@@ -93,7 +93,7 @@ const plantillas = {
   }),
 
   recuperarPassword: (nombre, tokenRecuperacion) => ({
-    subject: '🔐 Recuperar contraseña - SurAndino',
+    subject: '🔐 Recuperar contraseña - AndinoExpress',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: #EF4444; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -162,7 +162,7 @@ const enviarEmail = async (para, tipo, datos) => {
     const { subject, html } = plantilla(...datos);
     
     const mailOptions = {
-      from: `"SurAndino" <${process.env.EMAIL_USER}>`,
+      from: `"AndinoExpress" <${process.env.EMAIL_USER}>`,
       to: para,
       subject: subject,
       html: html

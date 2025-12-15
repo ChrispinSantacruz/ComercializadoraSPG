@@ -1,7 +1,7 @@
 {
-  "name": "comercializadora-spg",
+  "name": "andinoexpress-backend",
   "version": "1.0.0",
-  "description": "Sistema de Comercializadora Multiperfil - SPG",
+  "description": "AndinoExpress - Plataforma de Comercio Electrónico Multiperfil",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -19,7 +19,7 @@
     "mongodb",
     "ecommerce"
   ],
-  "author": "Comercializadora SPG",
+  "author": "AndinoExpress",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.11.0",
@@ -33,6 +33,7 @@
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
+    "firebase-admin": "^13.6.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.3",

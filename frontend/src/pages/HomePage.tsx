@@ -12,7 +12,7 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Bienvenido a SurAndino
+              Bienvenido a AndinoExpress
             </h1>
             <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
               Tu plataforma de confianza para compras y ventas en línea
@@ -61,7 +61,7 @@ const HomePage: React.FC = () => {
           <div className="relative overflow-hidden rounded-xl">
             <img 
               src="/images/banner-home.png" 
-              alt="¡Descubre lo Mejor en SurAndino! - Productos de calidad, precios increíbles y envío a todo el país"
+              alt="¡Descubre lo Mejor en AndinoExpress! - Productos de calidad, precios increíbles y envío a todo el país"
               className="w-full h-auto object-cover"
               onError={(e) => {
                 // Fallback si la imagen no se encuentra
@@ -124,7 +124,7 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              ¿Por qué elegir SurAndino?
+              ¿Por qué elegir AndinoExpress?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Ofrecemos la mejor experiencia para compradores y vendedores

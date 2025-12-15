@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Product, Category } from '../../types';
 import { productService } from '../../services/productService';
-import { cartService } from '../../services/cartService';
+import { useCartStore } from '../../stores/cartStore';
 import categoryService from '../../services/categoryService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useNotifications } from '../../components/ui/NotificationContainer';
@@ -12,6 +12,7 @@ const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showSuccess, showError } = useNotifications();
+  const { addToCart } = useCartStore();
   const [product, setProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,7 +66,7 @@ const ProductDetailPage: React.FC = () => {
     
     try {
       setAddingToCart(true);
-      await cartService.addProduct(product._id, quantity);
+      await addToCart(product._id, quantity);
       showSuccess(
         '¡Producto agregado!',
         `${product.nombre} se agregó al carrito (${quantity} ${quantity === 1 ? 'unidad' : 'unidades'})`,
@@ -86,7 +87,7 @@ const ProductDetailPage: React.FC = () => {
     
     try {
       setAddingToCart(true);
-      await cartService.addProduct(product._id, quantity);
+      await addToCart(product._id, quantity);
       showSuccess('¡Producto añadido!', 'Procediendo al checkout...');
       setTimeout(() => navigate('/checkout'), 1000);
     } catch (err) {

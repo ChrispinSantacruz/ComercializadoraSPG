@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Address, AddressForm as AddressFormType } from '../../types';
+import { getDepartamentos, getCiudadesPorDepartamento } from '../../utils/colombiaData';
 
 interface AddressFormProps {
   address?: Address;
@@ -34,14 +35,31 @@ const AddressForm: React.FC<AddressFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [ciudadesDisponibles, setCiudadesDisponibles] = useState<string[]>([]);
+  const [otraCiudad, setOtraCiudad] = useState('');
+  
+  const departamentos = getDepartamentos();
 
-  const departamentos = [
-    'Amazonas', 'Antioquia', 'Arauca', 'Atlántico', 'Bolívar', 'Boyacá', 'Caldas',
-    'Caquetá', 'Casanare', 'Cauca', 'Cesar', 'Chocó', 'Córdoba', 'Cundinamarca',
-    'Guainía', 'Guaviare', 'Huila', 'La Guajira', 'Magdalena', 'Meta', 'Nariño',
-    'Norte de Santander', 'Putumayo', 'Quindío', 'Risaralda', 'San Andrés y Providencia',
-    'Santander', 'Sucre', 'Tolima', 'Valle del Cauca', 'Vaupés', 'Vichada'
-  ];
+  // Actualizar ciudades disponibles cuando cambie el departamento
+  useEffect(() => {
+    if (formData.direccion.departamento) {
+      const ciudades = getCiudadesPorDepartamento(formData.direccion.departamento);
+      setCiudadesDisponibles(ciudades);
+      
+      // Si la ciudad actual no está en la nueva lista, limpiarla
+      if (!ciudades.includes(formData.direccion.ciudad) && formData.direccion.ciudad !== 'Otra') {
+        setFormData(prev => ({
+          ...prev,
+          direccion: {
+            ...prev.direccion,
+            ciudad: ''
+          }
+        }));
+      }
+    } else {
+      setCiudadesDisponibles([]);
+    }
+  }, [formData.direccion.departamento]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -84,6 +102,11 @@ const AddressForm: React.FC<AddressFormProps> = ({
     if (!formData.direccion.barrio.trim()) newErrors['direccion.barrio'] = 'El barrio es requerido';
     if (!formData.direccion.ciudad.trim()) newErrors['direccion.ciudad'] = 'La ciudad es requerida';
     if (!formData.direccion.departamento) newErrors['direccion.departamento'] = 'El departamento es requerido';
+    
+    // Si seleccionó "Otra" ciudad, validar que escribió el nombre
+    if (formData.direccion.ciudad === 'Otra' && !otraCiudad.trim()) {
+      newErrors['otraCiudad'] = 'Debe especificar el nombre de la ciudad';
+    }
 
     // Validar teléfono
     const phoneRegex = /^[0-9+\-\s]+$/;
@@ -98,7 +121,17 @@ const AddressForm: React.FC<AddressFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    onSubmit(formData);
+    
+    // Si seleccionó "Otra" ciudad, usar el valor escrito
+    const finalData = {
+      ...formData,
+      direccion: {
+        ...formData.direccion,
+        ciudad: formData.direccion.ciudad === 'Otra' ? otraCiudad : formData.direccion.ciudad
+      }
+    };
+    
+    onSubmit(finalData);
   };
 
   return (
@@ -255,23 +288,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ciudad *
-              </label>
-              <input
-                type="text"
-                name="direccion.ciudad"
-                value={formData.direccion.ciudad}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  errors['direccion.ciudad'] ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Bogotá, Medellín"
-              />
-              {errors['direccion.ciudad'] && <p className="text-red-500 text-sm mt-1">{errors['direccion.ciudad']}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Departamento *
               </label>
               <select
@@ -282,7 +298,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
                   errors['direccion.departamento'] ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
-                <option value="">Seleccionar</option>
+                <option value="">Seleccionar departamento</option>
                 {departamentos.map(dept => (
                   <option key={dept} value={dept}>{dept}</option>
                 ))}
@@ -291,6 +307,45 @@ const AddressForm: React.FC<AddressFormProps> = ({
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ciudad *
+              </label>
+              <select
+                name="direccion.ciudad"
+                value={formData.direccion.ciudad}
+                onChange={handleChange}
+                disabled={!formData.direccion.departamento}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  errors['direccion.ciudad'] ? 'border-red-500' : 'border-gray-300'
+                } disabled:bg-gray-100 disabled:cursor-not-allowed`}
+              >
+                <option value="">Seleccionar ciudad</option>
+                {ciudadesDisponibles.map(ciudad => (
+                  <option key={ciudad} value={ciudad}>{ciudad}</option>
+                ))}
+              </select>
+              {errors['direccion.ciudad'] && <p className="text-red-500 text-sm mt-1">{errors['direccion.ciudad']}</p>}
+            </div>
+            
+            {formData.direccion.ciudad === 'Otra' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre de la ciudad *
+                </label>
+                <input
+                  type="text"
+                  value={otraCiudad}
+                  onChange={(e) => setOtraCiudad(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    errors['otraCiudad'] ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="Escriba el nombre de la ciudad"
+                />
+                {errors['otraCiudad'] && <p className="text-red-500 text-sm mt-1">{errors['otraCiudad']}</p>}
+              </div>
+            )}
+
+            <div className={formData.direccion.ciudad === 'Otra' ? 'md:col-start-1' : ''}>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Código Postal
               </label>

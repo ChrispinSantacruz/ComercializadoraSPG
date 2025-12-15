@@ -1,4 +1,4 @@
-# 📧 Configuración de Email con Nodemailer - SurAndino
+# 📧 Configuración de Email con Nodemailer - AndinoExpress
 
 ## 🚀 Inicio Rápido
 
@@ -14,7 +14,7 @@
 2. **Genera una App Password**
    - Ve a: https://myaccount.google.com/apppasswords
    - Selecciona "Correo" y "Otro (nombre personalizado)"
-   - Escribe "SurAndino" o "Nodemailer"
+   - Escribe "AndinoExpress" o "Nodemailer"
    - Copia la contraseña de 16 caracteres generada
 
 3. **Configura tu .env**

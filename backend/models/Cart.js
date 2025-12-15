@@ -263,41 +263,50 @@ cartSchema.methods.limpiar = function() {
 
 // Método para calcular totales
 cartSchema.methods.calcularTotales = function() {
-  // Calcular subtotal con validación robusta
-  this.subtotal = this.productos.reduce((total, producto) => {
-    const subtotal = producto.subtotal || (producto.cantidad * (producto.precioOferta || producto.precio || 0));
-    return total + (isNaN(subtotal) ? 0 : subtotal);
+  // Primero, recalcular y actualizar el subtotal de cada producto individual
+  this.productos.forEach(producto => {
+    const precioUnitario = producto.precioOferta || producto.precio || 0;
+    const nuevoSubtotal = producto.cantidad * precioUnitario;
+    producto.subtotal = nuevoSubtotal;
+  });
+  
+  // Luego, calcular el subtotal total del carrito
+  const subtotal = this.productos.reduce((total, producto) => {
+    return total + (isNaN(producto.subtotal) ? 0 : producto.subtotal);
   }, 0);
   
   // Aplicar descuentos de cupones
-  this.descuentos = this.cupones.reduce((total, cupon) => {
+  const descuentos = this.cupones.reduce((total, cupon) => {
     if (cupon.tipo === 'porcentaje') {
-      return total + (this.subtotal * cupon.descuento / 100);
+      return total + (subtotal * cupon.descuento / 100);
     } else {
       return total + cupon.descuento;
     }
   }, 0);
   
   // Calcular impuestos (19% IVA en Colombia)
-  this.impuestos = (this.subtotal - this.descuentos) * 0.19;
+  const impuestos = (subtotal - descuentos) * 0.19;
+  
+  // Costo de envío fijo de $18.000 COP (solo si hay productos en el carrito)
+  const costoEnvio = this.productos.length > 0 ? 18000 : 0;
   
   // Calcular total
-  this.total = this.subtotal - this.descuentos + this.impuestos + (this.costoEnvio || 0);
+  const total = subtotal - descuentos + impuestos + costoEnvio;
   
-  // Asegurar que el total no sea negativo y no sea NaN
-  if (this.total < 0 || isNaN(this.total)) {
-    this.total = 0;
-  }
+  // Usar set() para asegurar que Mongoose detecte los cambios
+  this.set('subtotal', isNaN(subtotal) || subtotal < 0 ? 0 : subtotal);
+  this.set('descuentos', isNaN(descuentos) || descuentos < 0 ? 0 : descuentos);
+  this.set('impuestos', isNaN(impuestos) || impuestos < 0 ? 0 : impuestos);
+  this.set('costoEnvio', costoEnvio);
+  this.set('total', isNaN(total) || total < 0 ? 0 : total);
   
-  // Asegurar que subtotal no sea NaN
-  if (isNaN(this.subtotal)) {
-    this.subtotal = 0;
-  }
-  
-  // Asegurar que impuestos no sea NaN
-  if (isNaN(this.impuestos)) {
-    this.impuestos = 0;
-  }
+  console.log('💰 Totales calculados:', { 
+    subtotal: this.subtotal, 
+    descuentos: this.descuentos,
+    impuestos: this.impuestos, 
+    costoEnvio: this.costoEnvio, 
+    total: this.total 
+  });
 };
 
 // Método para aplicar cupón

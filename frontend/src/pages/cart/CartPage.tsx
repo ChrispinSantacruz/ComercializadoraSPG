@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Cart, CartItem } from '../../types';
-import { cartService } from '../../services/cartService';
+import { useCartStore } from '../../stores/cartStore';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useNotifications } from '../../components/ui/NotificationContainer';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const CartPage: React.FC = () => {
   const navigate = useNavigate();
   const { showWarning } = useNotifications();
+  const { cart: storeCart, getCart, updateQuantity: updateStoreQuantity, removeItem: removeStoreItem, clearCart: clearStoreCart } = useCartStore();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,11 +19,17 @@ const CartPage: React.FC = () => {
     loadCart();
   }, []);
 
+  // Sincronizar con el store
+  useEffect(() => {
+    if (storeCart) {
+      setCart(storeCart);
+    }
+  }, [storeCart]);
+
   const loadCart = async () => {
     try {
       setLoading(true);
-      const cartData = await cartService.getCart();
-      setCart(cartData);
+      await getCart();
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error cargando carrito');
@@ -38,8 +46,7 @@ const CartPage: React.FC = () => {
 
     try {
       setUpdatingItem(productId);
-      await cartService.updateQuantity(productId, newQuantity);
-      await loadCart();
+      await updateStoreQuantity(productId, newQuantity);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error actualizando cantidad');
     } finally {
@@ -54,8 +61,7 @@ const CartPage: React.FC = () => {
 
     try {
       setUpdatingItem(productId);
-      await cartService.removeProduct(productId);
-      await loadCart();
+      await removeStoreItem(productId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error eliminando producto');
     } finally {
@@ -70,8 +76,7 @@ const CartPage: React.FC = () => {
 
     try {
       setLoading(true);
-      await cartService.clearCart();
-      await loadCart();
+      await clearStoreCart();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error vaciando carrito');
     } finally {
@@ -126,77 +131,90 @@ const CartPage: React.FC = () => {
           {/* Productos en el carrito */}
           <div className="lg:col-span-2 space-y-4">
             {cart.productos.map((item: CartItem) => (
-              <div key={item._id} className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center space-x-4">
-                  {/* Imagen del producto */}
-                  <div className="flex-shrink-0 w-20 h-20">
+              <div key={item._id} className="bg-white rounded-lg shadow-md p-4">
+                <div className="flex gap-4">
+                  {/* Imagen del producto - Mejorada */}
+                  <div className="flex-shrink-0 w-24 h-24 sm:w-32 sm:h-32">
                     {item.producto.imagenes && item.producto.imagenes.length > 0 ? (
                       <img
-                        src={item.producto.imagenes[0]}
+                        src={getImageUrl(item.producto.imagenes[0])}
                         alt={item.producto.nombre}
-                        className="w-full h-full object-cover rounded-lg"
+                        className="w-full h-full object-cover rounded-lg border border-gray-200 shadow-sm"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null;
+                          target.src = '/images/default-product.svg';
+                        }}
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center border border-gray-300">
+                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                     )}
                   </div>
 
-                  {/* Información del producto */}
-                  <div className="flex-grow">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {item.producto.nombre}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-2">
-                      {item.producto.descripcion?.substring(0, 100)}...
-                    </p>
-                    <p className="text-lg font-bold text-green-600">
-                      ${item.precio.toLocaleString('es-CO')}
-                    </p>
-                  </div>
-
-                  {/* Controles de cantidad */}
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center border border-gray-300 rounded-lg">
-                      <button
-                        onClick={() => handleUpdateQuantity(item.producto._id, item.cantidad - 1)}
-                        disabled={updatingItem === item.producto._id || item.cantidad <= 1}
-                        className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        -
-                      </button>
-                      <span className="px-4 py-2 text-gray-900 font-medium min-w-[50px] text-center">
-                        {updatingItem === item.producto._id ? '...' : item.cantidad}
-                      </span>
-                      <button
-                        onClick={() => handleUpdateQuantity(item.producto._id, item.cantidad + 1)}
-                        disabled={updatingItem === item.producto._id || item.cantidad >= item.producto.stock}
-                        className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        +
-                      </button>
+                  {/* Información del producto y controles */}
+                  <div className="flex-grow flex flex-col sm:flex-row justify-between gap-4">
+                    {/* Info del producto */}
+                    <div className="flex-grow">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                        {item.producto.nombre}
+                      </h3>
+                      {item.producto.descripcion && (
+                        <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                          {item.producto.descripcion}
+                        </p>
+                      )}
+                      <p className="text-xl font-bold text-green-600">
+                        ${item.precio.toLocaleString('es-CO')}
+                      </p>
                     </div>
 
-                    {/* Botón eliminar */}
-                    <button
-                      onClick={() => handleRemoveItem(item.producto._id)}
-                      disabled={updatingItem === item.producto._id}
-                      className="text-red-600 hover:text-red-800 p-2 disabled:opacity-50"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                    {/* Controles de cantidad y eliminar */}
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3">
+                      {/* Controles de cantidad */}
+                      <div className="flex items-center border border-gray-300 rounded-lg">
+                        <button
+                          onClick={() => handleUpdateQuantity(item.producto._id, item.cantidad - 1)}
+                          disabled={updatingItem === item.producto._id || item.cantidad <= 1}
+                          className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg"
+                        >
+                          -
+                        </button>
+                        <span className="px-4 py-2 text-gray-900 font-medium min-w-[50px] text-center">
+                          {updatingItem === item.producto._id ? '...' : item.cantidad}
+                        </span>
+                        <button
+                          onClick={() => handleUpdateQuantity(item.producto._id, item.cantidad + 1)}
+                          disabled={updatingItem === item.producto._id || item.cantidad >= item.producto.stock}
+                          className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Botón eliminar */}
+                      <button
+                        onClick={() => handleRemoveItem(item.producto._id)}
+                        disabled={updatingItem === item.producto._id}
+                        className="text-red-600 hover:text-red-800 p-2 disabled:opacity-50 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Eliminar producto"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 {/* Subtotal del item */}
-                <div className="mt-4 text-right">
-                  <span className="text-lg font-semibold text-gray-900">
-                    Subtotal: ${item.subtotal.toLocaleString('es-CO')}
+                <div className="mt-4 pt-3 border-t border-gray-200 flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Subtotal ({item.cantidad} {item.cantidad === 1 ? 'unidad' : 'unidades'})</span>
+                  <span className="text-lg font-bold text-gray-900">
+                    ${item.subtotal.toLocaleString('es-CO')}
                   </span>
                 </div>
               </div>
@@ -224,9 +242,14 @@ const CartPage: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Costo de envío</span>
                   <span className="font-medium">
-                    {cart.costoEnvio === 0 ? 'Gratis' : `$${cart.costoEnvio.toLocaleString('es-CO')}`}
+                    ${cart.costoEnvio.toLocaleString('es-CO')}
                   </span>
                 </div>
+                {cart.costoEnvio > 0 && (
+                  <p className="text-xs text-gray-500 -mt-2">
+                    🚚 Envío a toda Colombia
+                  </p>
+                )}
                 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Impuestos</span>

@@ -13,10 +13,10 @@ const Footer: React.FC = () => {
             <div className="flex items-center">
               <img 
                 src="/images/Logo.png" 
-                alt="SurAndino Logo" 
+                alt="AndinoExpress Logo" 
                 className="h-12 w-12 rounded-lg object-contain"
               />
-              <h3 className="ml-3 text-2xl font-bold">SurAndino</h3>
+              <h3 className="ml-3 text-2xl font-bold">AndinoExpress</h3>
             </div>
             <p className="text-gray-400 mb-4 text-lg">
               Tu plataforma de confianza para compras y ventas en línea. 
@@ -33,7 +33,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li>
                 <Link to="/sobre-nosotros" className="text-gray-400 hover:text-white transition duration-300">
-                  Acerca de SurAndino
+                  Acerca de AndinoExpress
                 </Link>
               </li>
               <li>
@@ -158,7 +158,7 @@ const Footer: React.FC = () => {
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                   <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                 </svg>
-                soporte@surandino.com
+                soporte@andinoexpress.com
               </li>
               <li className="flex items-center text-gray-400">
                 <svg className="w-5 h-5 mr-2 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -188,7 +188,7 @@ const Footer: React.FC = () => {
             
             {/* Redes sociales */}
             <div className="mb-6 md:mb-0">
-              <h4 className="text-lg font-semibold mb-4 text-blue-400">Conectar con SurAndino</h4>
+              <h4 className="text-lg font-semibold mb-4 text-blue-400">Conectar con AndinoExpress</h4>
               <div className="flex space-x-4">
                 <a href="#" className="text-gray-400 hover:text-blue-400 transition duration-300">
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -248,7 +248,7 @@ const Footer: React.FC = () => {
         {/* Línea de copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            &copy; 2024 SurAndino. Todos los derechos reservados. | 
+            &copy; 2024 AndinoExpress. Todos los derechos reservados. | 
             <Link to="/terminos" className="text-gray-400 hover:text-white transition duration-300 ml-2">
               Términos y Condiciones
             </Link> | 

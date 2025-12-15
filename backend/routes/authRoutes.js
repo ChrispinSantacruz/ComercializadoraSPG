@@ -88,7 +88,7 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
   // @desc    Iniciar autenticación con Facebook
   // @access  Public
   router.get('/facebook',
-    passport.authenticate('facebook', { scope: ['email'] })
+    passport.authenticate('facebook', { scope: ['public_profile'] })
   );
 
   // @route   GET /api/auth/facebook/callback
@@ -107,5 +107,15 @@ if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
 // @desc    Failure callback para OAuth
 // @access  Public
 router.get('/failure', authController.oauthFailure);
+
+// @route   POST /api/auth/firebase-login
+// @desc    Login con Firebase (Google/Facebook)
+// @access  Public
+router.post('/firebase-login', authController.firebaseLogin);
+
+// @route   POST /api/auth/seleccionar-rol
+// @desc    Seleccionar rol después de OAuth
+// @access  Public
+router.post('/seleccionar-rol', authController.seleccionarRol);
 
 module.exports = router; 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Product, Category, ProductFilters } from '../../types';
 import { productService } from '../../services/productService';
 import categoryService from '../../services/categoryService';
-import { cartService } from '../../services/cartService';
+import { useCartStore } from '../../stores/cartStore';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useNotifications } from '../../components/ui/NotificationContainer';
 import { getFirstImageUrl, handleImageError } from '../../utils/imageUtils';
@@ -38,7 +38,7 @@ const ProductsPage: React.FC = () => {
     precioMax: undefined,
     ordenar: 'fecha-desc',
     page: 1,
-    limit: 12 // Mostrar 12 productos por carga (4 filas de 3 columnas)
+    limit: 15 // Mostrar 15 productos por carga (5 filas de 3 columnas)
   });
   const [showFilters, setShowFilters] = useState(false);
 
@@ -123,9 +123,11 @@ const ProductsPage: React.FC = () => {
     }
   };
 
+  const { addToCart } = useCartStore();
+
   const handleAddToCart = async (productId: string) => {
     try {
-      await cartService.addProduct(productId, 1);
+      await addToCart(productId, 1);
       showSuccess(
         '¡Producto agregado!',
         'El producto se ha añadido al carrito exitosamente',
@@ -163,7 +165,7 @@ const ProductsPage: React.FC = () => {
       precioMax: undefined,
       ordenar: 'fecha-desc',
       page: 1,
-      limit: 12
+      limit: 15
     });
     setCurrentPage(1);
     setHasMore(true);
@@ -180,7 +182,7 @@ const ProductsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header mejorado */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg mb-8">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center">
             <div>
@@ -205,7 +207,7 @@ const ProductsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 pb-16">
+      <div className="container mx-auto px-4 py-8 pb-16">
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
@@ -213,10 +215,10 @@ const ProductsPage: React.FC = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Filtros mejorados */}
-        <div className={`lg:col-span-1 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-          <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 space-y-6 sticky top-6">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
+        {/* Filtros mejorados - 2 columnas de ancho a la izquierda */}
+        <div className={`lg:col-span-2 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 space-y-6 lg:sticky lg:top-24 max-h-[calc(100vh-120px)] overflow-y-auto">
             <div className="flex justify-between items-center pb-4 border-b border-gray-100">
               <div className="flex items-center">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
@@ -236,27 +238,27 @@ const ProductsPage: React.FC = () => {
 
             {/* Búsqueda */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Buscar productos
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                🔍 Buscar productos
               </label>
               <input
                 type="text"
                 value={filters.q || ''}
                 onChange={(e) => handleFilterChange('q', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Nombre del producto..."
               />
             </div>
 
             {/* Categoría */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Categoría
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                🏷️ Categoría
               </label>
               <select
                 value={filters.categoria || ''}
                 onChange={(e) => handleFilterChange('categoria', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
               >
                 <option value="">Todas las categorías</option>
                 {categories && Array.isArray(categories) && categories.map(category => (
@@ -269,36 +271,36 @@ const ProductsPage: React.FC = () => {
 
             {/* Rango de precios */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Rango de precio
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                💰 Rango de precio
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <input
                   type="number"
                   value={filters.precioMin || ''}
                   onChange={(e) => handleFilterChange('precioMin', e.target.value ? Number(e.target.value) : undefined)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Min"
+                  className="px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Mín"
                 />
                 <input
                   type="number"
                   value={filters.precioMax || ''}
                   onChange={(e) => handleFilterChange('precioMax', e.target.value ? Number(e.target.value) : undefined)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Max"
+                  className="px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Máx"
                 />
               </div>
             </div>
 
             {/* Ordenar */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ordenar por
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                🔄 Ordenar por
               </label>
               <select
                 value={filters.ordenar || 'fecha-desc'}
                 onChange={(e) => handleFilterChange('ordenar', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
               >
                 <option value="fecha-desc">Más recientes</option>
                 <option value="fecha-asc">Más antiguos</option>

@@ -73,18 +73,12 @@ const crearPedido = async (req, res) => {
         imagen: producto.imagenPrincipal || (producto.imagenes && producto.imagenes.length > 0 ? producto.imagenes[0].url : '') || ''
       });
 
-      // Actualizar stock
-      await Product.findByIdAndUpdate(producto._id, {
-        $inc: { 
-          stock: -item.cantidad,
-          'estadisticas.vendidos': item.cantidad
-        }
-      });
+      // NO descontar stock aquí - se descontará cuando se confirme el pago
     }
 
     // Calcular impuestos y total
     const impuestos = Math.round(subtotal * 0.19);
-    const costoEnvio = subtotal > 100000 ? 0 : 15000; // Envío gratis para compras > $100k
+    const costoEnvio = 18000; // Costo de envío fijo de $18.000 COP
     const total = subtotal + impuestos + costoEnvio;
 
     // Generar número de orden único

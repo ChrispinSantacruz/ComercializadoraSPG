@@ -293,13 +293,13 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="max-w-5xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 space-y-4 sm:space-y-5 md:space-y-6">
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         {/* Header del perfil con banner si es comerciante */}
         <div className="relative">
           {/* Banner para comerciantes */}
           {user.rol === 'comerciante' && (
-            <div className="relative h-48 bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
+            <div className="relative h-40 sm:h-52 md:h-56 lg:h-64 bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
               {user.banner ? (
                 <img 
                   src={user.banner} 
@@ -307,12 +307,12 @@ const ProfilePage: React.FC = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="flex items-center justify-center h-full">
-                  <p className="text-white text-lg">Sube un banner para tu negocio</p>
+                <div className="flex items-center justify-center h-full px-4 sm:px-6">
+                  <p className="text-white text-xs sm:text-sm md:text-base lg:text-lg text-center font-medium">Sube un banner para tu negocio</p>
                 </div>
               )}
-              <div className="absolute bottom-4 right-4">
-                <label className="bg-white/90 hover:bg-white text-blue-600 px-4 py-2 rounded-lg cursor-pointer transition-colors inline-flex items-center gap-2">
+              <div className="absolute bottom-3 sm:bottom-4 md:bottom-5 right-3 sm:right-4 md:right-5">
+                <label className="bg-white/90 hover:bg-white text-blue-600 px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 rounded-lg cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base font-medium">
                   {uploadingBanner ? '⏳ Subiendo...' : '📸 Cambiar Banner'}
                   <input
                     type="file"
@@ -327,10 +327,10 @@ const ProfilePage: React.FC = () => {
           )}
           
           {/* Header del perfil */}
-          <div className={`${user.rol === 'comerciante' ? 'bg-white' : 'bg-gradient-to-r from-blue-600 to-blue-800'} px-6 py-8`}>
-            <div className="flex items-center space-x-6">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center overflow-hidden border-4 border-white shadow-lg">
+          <div className={`${user.rol === 'comerciante' ? 'bg-white' : 'bg-gradient-to-r from-blue-600 to-blue-800'} px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8 md:py-10`}>
+            <div className="flex flex-col sm:flex-row items-center sm:items-start sm:space-x-4 md:space-x-6 lg:space-x-8 space-y-4 sm:space-y-0">
+              <div className="relative flex-shrink-0">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden border-4 border-white shadow-xl">
                   {user.avatar ? (
                     <img 
                       src={user.avatar} 
@@ -338,12 +338,10 @@ const ProfilePage: React.FC = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className={`${user.rol === 'comerciante' ? 'text-blue-600' : 'text-white'} text-2xl font-bold`}>
-                      {user.nombre?.charAt(0).toUpperCase() || 'U'}
-                    </span>
+                    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100"></div>
                   )}
                 </div>
-                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
+                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 sm:p-2.5 md:p-3 rounded-full cursor-pointer hover:bg-blue-700 hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl">
                   {uploadingAvatar ? '⏳' : '📷'}
                   <input
                     type="file"
@@ -355,22 +353,22 @@ const ProfilePage: React.FC = () => {
                 </label>
               </div>
               
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h1 className={`text-3xl font-bold ${user.rol === 'comerciante' ? 'text-gray-900' : 'text-white'} mb-2`}>
+              <div className="flex-1 w-full">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between space-y-3 sm:space-y-0">
+                  <div className="flex-1 text-center sm:text-left">
+                    <h1 className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold ${user.rol === 'comerciante' ? 'text-gray-900' : 'text-white'} mb-1 sm:mb-2`}>
                       Mi Perfil
                     </h1>
-                    <p className={user.rol === 'comerciante' ? 'text-gray-600' : 'text-blue-100'}>
+                    <p className={`${user.rol === 'comerciante' ? 'text-gray-600' : 'text-blue-100'} text-xs sm:text-sm md:text-base font-medium`}>
                       {user.nombre || 'Usuario'} • {user.rol?.charAt(0).toUpperCase() + user.rol?.slice(1) || 'Cliente'}
                     </p>
                     {user.verificado ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-2">
-                        Email verificado
+                      <span className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 mt-2 sm:mt-3">
+                        ✓ Email verificado
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mt-2">
-                        Email pendiente de verificar
+                      <span className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-yellow-100 text-yellow-800 mt-2 sm:mt-3">
+                        ⚠ Email pendiente de verificar
                       </span>
                     )}
                   </div>
@@ -378,15 +376,15 @@ const ProfilePage: React.FC = () => {
                   <button
                     onClick={handleRefreshProfile}
                     disabled={refreshing}
-                    className={`ml-4 p-2 rounded-lg transition-colors ${
+                    className={`sm:ml-4 p-2 sm:p-2.5 md:p-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
                       user.rol === 'comerciante' 
-                        ? 'bg-white hover:bg-gray-50 text-gray-700' 
+                        ? 'bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400' 
                         : 'bg-blue-700 hover:bg-blue-800 text-white'
-                    } ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    } ${refreshing ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
                     title="Actualizar perfil"
                   >
                     <svg 
-                      className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} 
+                      className={`w-5 h-5 sm:w-6 sm:h-6 ${refreshing ? 'animate-spin' : ''}`} 
                       fill="none" 
                       stroke="currentColor" 
                       viewBox="0 0 24 24"
@@ -407,35 +405,35 @@ const ProfilePage: React.FC = () => {
 
         {/* Mensajes */}
         {error && (
-          <div className="mx-6 mt-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error}
+          <div className="mx-3 sm:mx-4 md:mx-6 mt-4 sm:mt-5 md:mt-6 bg-red-50 border-l-4 border-red-500 text-red-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 rounded-lg shadow-md">
+            <p className="text-sm sm:text-base font-medium">{error}</p>
           </div>
         )}
         
         {success && (
-          <div className="mx-6 mt-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-            {success}
+          <div className="mx-3 sm:mx-4 md:mx-6 mt-4 sm:mt-5 md:mt-6 bg-green-50 border-l-4 border-green-500 text-green-700 px-4 sm:px-5 md:px-6 py-3 sm:py-4 rounded-lg shadow-md">
+            <p className="text-sm sm:text-base font-medium">{success}</p>
           </div>
         )}
 
         {/* Información del perfil */}
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Información Personal</h2>
-            <div className="space-x-3">
+        <div className="p-4 sm:p-5 md:p-6 lg:p-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-5 md:mb-6 gap-3 sm:gap-0">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">Información Personal</h2>
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base font-medium"
                 >
-                  Editar Perfil
+                  ✏️ Editar Perfil
                 </button>
               )}
               <button
                 onClick={() => setShowPasswordChange(!showPasswordChange)}
-                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                className="bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base font-medium"
               >
-                Cambiar Contraseña
+                🔒 Cambiar Contraseña
               </button>
             </div>
           </div>
@@ -504,26 +502,26 @@ const ProfilePage: React.FC = () => {
               </div>
             </form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Nombre completo</h3>
-                <p className="text-gray-900">{user.nombre}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-500 mb-1 sm:mb-2 uppercase tracking-wide">Nombre completo</h3>
+                <p className="text-gray-900 text-sm sm:text-base font-medium">{user.nombre}</p>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Email</h3>
-                <p className="text-gray-900">{user.email}</p>
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-500 mb-1 sm:mb-2 uppercase tracking-wide">Email</h3>
+                <p className="text-gray-900 text-sm sm:text-base font-medium break-all">{user.email}</p>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Teléfono</h3>
-                <p className="text-gray-900">{user.telefono || 'No especificado'}</p>
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-500 mb-1 sm:mb-2 uppercase tracking-wide">Teléfono</h3>
+                <p className="text-gray-900 text-sm sm:text-base font-medium">{user.telefono || 'No especificado'}</p>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Rol</h3>
-                <p className="text-gray-900 capitalize">{user.rol}</p>
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-500 mb-1 sm:mb-2 uppercase tracking-wide">Rol</h3>
+                <p className="text-gray-900 text-sm sm:text-base font-medium capitalize">{user.rol}</p>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Fecha de registro</h3>
-                <p className="text-gray-900">
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-500 mb-1 sm:mb-2 uppercase tracking-wide">Fecha de registro</h3>
+                <p className="text-gray-900 text-sm sm:text-base font-medium">
                   {new Date(user.fechaCreacion).toLocaleDateString('es-CO', {
                     year: 'numeric',
                     month: 'long',
@@ -531,9 +529,9 @@ const ProfilePage: React.FC = () => {
                   })}
                 </p>
               </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-1">Estado de verificación</h3>
-                <p className="text-gray-900">
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-200">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-500 mb-1 sm:mb-2 uppercase tracking-wide">Estado de verificación</h3>
+                <p className="text-gray-900 text-sm sm:text-base font-medium">
                   {user.verificado ? 'Verificado' : 'Pendiente de verificación'}
                 </p>
               </div>

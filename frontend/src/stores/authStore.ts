@@ -25,6 +25,8 @@ interface AuthState {
   clearError: () => void;
   updateUser: (userData: Partial<User>) => void;
   checkAuth: () => Promise<void>;
+  setUser: (user: User | null) => void;
+  setToken: (token: string | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -152,6 +154,15 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      // Establecer usuario (para OAuth)
+      setUser: (user: User | null) => {
+        set({ user, isAuthenticated: !!user });
+      },
+
+      // Establecer token (para OAuth)
+      setToken: (token: string | null) => {
+        set({ token });
+      },
 
     }),
     {

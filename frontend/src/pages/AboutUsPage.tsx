@@ -126,12 +126,12 @@ const AboutUsPage: React.FC = () => {
             </div>
             
             {/* Call to Action */}
-            <div className="mt-12">
+            <div className="mt-12 mb-16">
               <button 
                 onClick={() => navigate('/register')}
                 className="bg-white text-blue-600 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                🚀 Únete a SurAndino
+                🚀 Únete a AndinoExpress
               </button>
             </div>
           </div>
@@ -139,14 +139,14 @@ const AboutUsPage: React.FC = () => {
       </div>
 
       {/* Mission, Vision, Values */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="grid lg:grid-cols-3 gap-12 mb-16">
+      <div className="container mx-auto px-4 py-20">
+        <div className="grid lg:grid-cols-3 gap-8 mb-20">
           {/* Misión */}
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-10 text-center hover:shadow-2xl transition-shadow duration-300">
             <div className="text-6xl mb-6">🎯</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Nuestra Misión</h3>
             <p className="text-gray-600 leading-relaxed">
-              En SurAndino trabajamos con pasión para conectar a las personas 
+              En AndinoExpress trabajamos con pasión para conectar a las personas 
               con lo que realmente necesitan y desean, ofreciendo soluciones innovadoras y accesibles 
               que respondan a sus gustos, estilos de vida y aspiraciones. Nos proyectamos como una 
               plataforma dinámica y confiable que, a través del comercio consciente y el uso de 
@@ -156,7 +156,7 @@ const AboutUsPage: React.FC = () => {
           </div>
 
           {/* Visión */}
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-10 text-center hover:shadow-2xl transition-shadow duration-300">
             <div className="text-6xl mb-6">🔮</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Nuestra Visión</h3>
             <p className="text-gray-600 leading-relaxed">
@@ -169,12 +169,12 @@ const AboutUsPage: React.FC = () => {
           </div>
 
           {/* Historia */}
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="bg-white rounded-xl shadow-lg p-10 text-center hover:shadow-2xl transition-shadow duration-300">
             <div className="text-6xl mb-6">📖</div>
             <h3 className="text-2xl font-bold text-gray-900 mb-4">Nuestra Historia</h3>
             <p className="text-gray-600 leading-relaxed">
-              Fundada en 2024 en la hermosa ciudad de Pasto, SurAndino nació 
-              del sueño de empoderar a las mujeres emprendedoras y comerciantes locales. 
+              Fundada en 2024, AndinoExpress nació 
+              del sueño de empoderar a las mujeres emprendedoras y comerciantes locales en Colombia. 
               Basamos nuestra labor en la calidad, la honestidad, el trato justo, 
               la entrega oportuna y la construcción de una marca con propósito y prestigio 
               que beneficie a toda la comunidad pastusa.
@@ -201,7 +201,7 @@ const AboutUsPage: React.FC = () => {
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Nuestros Valores 💎</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Los principios que guían cada decisión y acción en SurAndino
+              Los principios que guían cada decisión y acción en AndinoExpress
             </p>
           </div>
           
@@ -221,7 +221,7 @@ const AboutUsPage: React.FC = () => {
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold text-gray-900 mb-4">Nuestro Equipo 👥</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Las personas apasionadas que hacen posible SurAndino cada día
+              Las personas apasionadas que hacen posible AndinoExpress cada día
             </p>
           </div>
           

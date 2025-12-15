@@ -1,6 +1,6 @@
-# 🏔️ SurAndino - Plataforma de Comercio Electrónico
+# 🚀 AndinoExpress - Plataforma de Comercio Electrónico
 
-**Marketplace moderno y seguro que conecta compradores y vendedores del sur de Colombia**
+**Marketplace moderno, rápido y seguro que conecta compradores y vendedores en Colombia**
 
 Sistema de comercio electrónico multiperfil con arquitectura MERN (MongoDB, Express, React, Node.js), diseñado para facilitar transacciones seguras entre clientes y comerciantes locales.
 
@@ -41,7 +41,7 @@ Sistema de comercio electrónico multiperfil con arquitectura MERN (MongoDB, Exp
 ## 📁 Estructura del Proyecto
 
 ```
-SurAndino/
+AndinoExpress/
 ├── backend/                    # 🔧 API REST - Node.js + Express
 │   ├── config/                # Configuración (DB, Passport OAuth)
 │   ├── controllers/           # Lógica de negocio (Auth, Cart, Orders, etc.)
@@ -402,4 +402,4 @@ Este proyecto está bajo la Licencia MIT - ver archivo [LICENSE](LICENSE) para d
 
 ---
 
-**🏔️ SurAndino** - Conectando el comercio del sur de Colombia 🇨🇴 
+**🚀 AndinoExpress** - Comercio rápido y confiable en Colombia 🇨🇴 

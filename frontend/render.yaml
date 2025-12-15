@@ -1,0 +1,11 @@
+# Build configuration for Render
+build:
+  env:
+    NODE_VERSION: 18.17.0
+  buildCommand: npm install && npm run build
+  publishDir: build
+
+# Redirect all routes to index.html for React Router
+routes:
+  - src: /*
+    dest: /index.html

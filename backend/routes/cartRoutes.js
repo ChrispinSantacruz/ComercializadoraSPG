@@ -49,4 +49,9 @@ router.delete('/coupon/:codigo', protect, cartController.removerCupon);
 // @access  Private
 router.get('/available-coupons', protect, cartController.obtenerCuponesDisponibles);
 
+// @route   POST /api/cart/recalculate
+// @desc    Recalculate cart totals
+// @access  Private
+router.post('/recalculate', protect, cartController.recalcularCarrito);
+
 module.exports = router; 

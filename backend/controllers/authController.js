@@ -10,6 +10,7 @@ const {
 } = require('../utils/jwt');
 const { enviarEmailBienvenida, enviarEmailRecuperacion } = require('../utils/email');
 const passport = require('passport');
+const { auth } = require('../config/firebaseAdmin');
 
 // @desc    Registrar nuevo usuario
 // @route   POST /api/auth/registro
@@ -603,6 +604,178 @@ const oauthFailure = (req, res) => {
   res.redirect(`${frontendURL}/login?error=oauth_cancelled`);
 };
 
+// @desc    Login con Firebase (Google/Facebook)
+// @route   POST /api/auth/firebase-login
+// @access  Public
+const firebaseLogin = async (req, res, next) => {
+  try {
+    const { idToken, provider, email, nombre, photoURL } = req.body;
+
+    if (!idToken) {
+      return errorResponse(res, 'Token de Firebase requerido', 400);
+    }
+
+    // Verificar el token de Firebase
+    let decodedToken;
+    try {
+      decodedToken = await auth.verifyIdToken(idToken);
+    } catch (error) {
+      console.error('Error verificando token de Firebase:', error);
+      return errorResponse(res, 'Token de Firebase inválido', 401);
+    }
+
+    const firebaseUid = decodedToken.uid;
+    const firebaseEmail = decodedToken.email || email;
+
+    // Buscar usuario existente por email o por proveedorId
+    let usuario = await User.findOne({
+      $or: [
+        { email: firebaseEmail },
+        { proveedorId: firebaseUid, proveedor: provider }
+      ]
+    });
+
+    if (usuario) {
+      // Usuario existente - actualizar información si es necesario
+      if (!usuario.proveedorId) {
+        usuario.proveedorId = firebaseUid;
+        usuario.proveedor = provider;
+      }
+      if (photoURL && !usuario.avatar) {
+        usuario.avatar = photoURL;
+      }
+      usuario.verificado = true; // Los usuarios de OAuth ya están verificados
+      await usuario.save();
+    } else {
+      // Crear nuevo usuario SIN ROL (lo seleccionará después)
+      usuario = new User({
+        nombre: nombre || decodedToken.name || 'Usuario',
+        email: firebaseEmail,
+        proveedor: provider,
+        proveedorId: firebaseUid,
+        avatar: photoURL || decodedToken.picture,
+        verificado: true,
+        rol: null, // Sin rol asignado inicialmente
+        // No se establece password para usuarios OAuth
+      });
+      await usuario.save();
+    }
+
+    // Si el usuario NO tiene rol, devolver usuario sin token para que seleccione rol
+    if (!usuario.rol) {
+      return successResponse(res, 'Usuario registrado, debe seleccionar rol', {
+        requiereSeleccionRol: true,
+        usuario: {
+          _id: usuario._id,
+          nombre: usuario.nombre,
+          email: usuario.email,
+          avatar: usuario.avatar,
+          proveedor: usuario.proveedor
+        }
+      }, 200);
+    }
+
+    // Generar token JWT para la aplicación
+    const token = generarTokenAcceso(usuario._id, usuario.email, usuario.rol);
+
+    // Establecer cookie
+    establecerTokenEnCookie(res, token);
+
+    return successResponse(res, 'Autenticación exitosa', {
+      token,
+      usuario: {
+        _id: usuario._id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        rol: usuario.rol,
+        avatar: usuario.avatar,
+        verificado: usuario.verificado,
+        proveedor: usuario.proveedor
+      }
+    }, 200);
+
+  } catch (error) {
+    console.error('Error en firebaseLogin:', error);
+    return errorResponse(res, 'Error en la autenticación', 500);
+  }
+};
+
+// @desc    Seleccionar rol después del registro OAuth
+// @route   POST /api/auth/seleccionar-rol
+// @access  Public (con userId)
+const seleccionarRol = async (req, res, next) => {
+  try {
+    const { userId, rol, nombreEmpresa, descripcionEmpresa, tipoDocumento, numeroDocumento } = req.body;
+
+    if (!userId || !rol) {
+      return errorResponse(res, 'Usuario y rol son requeridos', 400);
+    }
+
+    const usuario = await User.findById(userId);
+    
+    if (!usuario) {
+      return errorResponse(res, 'Usuario no encontrado', 404);
+    }
+
+    if (usuario.rol) {
+      return errorResponse(res, 'El usuario ya tiene un rol asignado', 400);
+    }
+
+    // Actualizar rol
+    usuario.rol = rol;
+
+    // Si es comerciante, requerir datos adicionales
+    if (rol === 'comerciante') {
+      if (!nombreEmpresa || !descripcionEmpresa) {
+        return errorResponse(res, 'Nombre y descripción de empresa son requeridos para comerciantes', 400);
+      }
+      
+      usuario.nombreEmpresa = nombreEmpresa;
+      usuario.descripcionEmpresa = descripcionEmpresa;
+      usuario.tipoDocumento = tipoDocumento;
+      usuario.numeroDocumento = numeroDocumento;
+      
+      // Generar código de verificación
+      const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+      usuario.codigoVerificacion = codigo;
+      usuario.codigoExpiracion = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
+      
+      await usuario.save();
+      
+      // Enviar email con código
+      await enviarEmailBienvenida(usuario.email, usuario.nombre, codigo);
+      
+      return successResponse(res, 'Datos de comerciante guardados. Revisa tu email para el código de verificación', {
+        requiereVerificacion: true,
+        userId: usuario._id
+      }, 200);
+    }
+
+    // Si es cliente, solo guardar
+    await usuario.save();
+
+    // Generar token JWT
+    const token = generarTokenAcceso(usuario._id, usuario.email, usuario.rol);
+    establecerTokenEnCookie(res, token);
+
+    return successResponse(res, 'Rol asignado exitosamente', {
+      token,
+      usuario: {
+        _id: usuario._id,
+        nombre: usuario.nombre,
+        email: usuario.email,
+        rol: usuario.rol,
+        avatar: usuario.avatar,
+        verificado: usuario.verificado
+      }
+    }, 200);
+
+  } catch (error) {
+    console.error('Error en seleccionarRol:', error);
+    return errorResponse(res, 'Error al seleccionar rol', 500);
+  }
+};
+
 module.exports = {
   registrarUsuario,
   iniciarSesion,
@@ -617,5 +790,7 @@ module.exports = {
   reenviarVerificacion,
   googleCallback,
   facebookCallback,
-  oauthFailure
+  oauthFailure,
+  firebaseLogin,
+  seleccionarRol
 }; 

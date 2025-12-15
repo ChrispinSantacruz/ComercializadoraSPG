@@ -70,4 +70,10 @@ export const cartService = {
     const response = await api.get('/cart/available-coupons');
     return handleApiResponse<Coupon[]>(response);
   },
+
+  // Recalcular totales del carrito
+  recalculateCart: async (): Promise<Cart> => {
+    const response = await api.post('/cart/recalculate');
+    return handleApiResponse<Cart>(response);
+  },
 }; 

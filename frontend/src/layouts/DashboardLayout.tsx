@@ -64,11 +64,11 @@ const DashboardLayout: React.FC = () => {
             <Link to="/" className="flex items-center">
               <img 
                 src="/images/Logo.png" 
-                alt="SurAndino Logo" 
+                alt="AndinoExpress Logo" 
                 className="h-8 w-8 rounded-lg object-contain mr-3"
               />
               <h1 className="text-xl font-bold text-gray-900">
-                SurAndino
+                AndinoExpress
               </h1>
             </Link>
 

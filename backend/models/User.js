@@ -46,13 +46,30 @@ const userSchema = new mongoose.Schema({
   },
   rol: {
     type: String,
-    enum: ['cliente', 'comerciante', 'administrador'],
-    default: 'cliente'
+    enum: ['cliente', 'comerciante', 'administrador', null],
+    default: null // Null para usuarios OAuth que aún no seleccionan rol
   },
+  
+  // Información de comerciante
   nombreEmpresa: {
     type: String,
     trim: true,
     maxlength: [100, 'El nombre de la empresa no puede exceder 100 caracteres']
+  },
+  descripcionEmpresa: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'La descripción no puede exceder 500 caracteres']
+  },
+  tipoDocumento: {
+    type: String,
+    enum: ['NIT', 'RUT', 'Cedula', 'Pasaporte'],
+    sparse: true
+  },
+  numeroDocumento: {
+    type: String,
+    trim: true,
+    sparse: true
   },
   avatar: {
     type: String,
@@ -165,6 +182,16 @@ const userSchema = new mongoose.Schema({
   fechaVerificacion: Date,
   tokenRecuperacion: String,
   fechaRecuperacion: Date,
+  
+  // Sistema de "Recuérdame" y 2FA
+  recordarme: {
+    type: Boolean,
+    default: false
+  },
+  tokenRecordatorio: String, // Token persistente para auto-login
+  fechaExpiracionRecordatorio: Date,
+  codigo2FA: String, // Código temporal para login sin "recuérdame"
+  fechaExpiracion2FA: Date,
   
   // Fechas importantes
   fechaUltimoLogin: Date,

@@ -1,7 +1,7 @@
 ```
 ╔════════════════════════════════════════════════════════════════════════╗
 ║                                                                        ║
-║           📧 CONFIGURACIÓN RÁPIDA DE EMAIL - SURANDINO                ║
+║           📧 CONFIGURACIÓN RÁPIDA DE EMAIL - ANDINOEXPRESS                ║
 ║                                                                        ║
 ╚════════════════════════════════════════════════════════════════════════╝
 
@@ -14,7 +14,7 @@
    2️⃣  Genera una "App Password":
        • Selecciona: "Correo"
        • Dispositivo: "Otro (nombre personalizado)"
-       • Nombre: "SurAndino"
+       • Nombre: "AndinoExpress"
    
    3️⃣  Copia la contraseña de 16 caracteres
 

@@ -8,6 +8,7 @@ import wompiService from '../../services/wompiService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useNotificationCard } from '../../hooks/useNotificationCard';
 import { useAuthStore } from '../../stores/authStore';
+import { getDepartamentos, getCiudadesPorDepartamento } from '../../utils/colombiaData';
 
 const CheckoutPageOptimized: React.FC = () => {
   const navigate = useNavigate();
@@ -60,10 +61,44 @@ const CheckoutPageOptimized: React.FC = () => {
 
   // Estados para método de pago
   const [paymentMethod] = useState<'wompi'>('wompi');
+  
+  // Estados para selectores de ubicación
+  const [ciudadesDisponibles, setCiudadesDisponibles] = useState<string[]>([]);
+  const [otraCiudad, setOtraCiudad] = useState('');
+  const departamentos = getDepartamentos();
+
+  // Actualizar ciudades disponibles cuando cambie el departamento
+  useEffect(() => {
+    if (newAddress.direccion.departamento) {
+      const ciudades = getCiudadesPorDepartamento(newAddress.direccion.departamento);
+      setCiudadesDisponibles(ciudades);
+      
+      // Si la ciudad actual no está en la nueva lista, limpiarla
+      if (!ciudades.includes(newAddress.direccion.ciudad) && newAddress.direccion.ciudad !== 'Otra') {
+        setNewAddress(prev => ({
+          ...prev,
+          direccion: {
+            ...prev.direccion,
+            ciudad: ''
+          }
+        }));
+        setOtraCiudad('');
+      }
+    } else {
+      setCiudadesDisponibles([]);
+    }
+  }, [newAddress.direccion.departamento]);
 
   const loadInitialData = async () => {
     try {
       setLoading(true);
+      
+      // Recalcular carrito para asegurar que tiene los valores actualizados (ej: costo de envío)
+      try {
+        await cartService.recalculateCart();
+      } catch (recalcError) {
+        console.warn('⚠️ Error recalculando carrito, continuando de todas formas:', recalcError);
+      }
       
       // Cargar carrito
       const cartData = await cartService.getCart();
@@ -108,8 +143,15 @@ const CheckoutPageOptimized: React.FC = () => {
 
     if (useNewAddress) {
       if (!newAddress.nombreDestinatario || !newAddress.telefono || 
-          !newAddress.direccion.calle || !newAddress.direccion.ciudad) {
+          !newAddress.direccion.calle || !newAddress.direccion.ciudad ||
+          !newAddress.direccion.departamento) {
         setError('Completa todos los campos obligatorios de la dirección');
+        return false;
+      }
+      
+      // Validar campo "Otra" ciudad
+      if (newAddress.direccion.ciudad === 'Otra' && !otraCiudad.trim()) {
+        setError('Debes especificar el nombre de la ciudad');
         return false;
       }
     }
@@ -127,6 +169,15 @@ const CheckoutPageOptimized: React.FC = () => {
     try {
       setProcessingPayment(true);
       setError('');
+      
+      // Preparar dirección final (usar ciudad escrita si seleccionó "Otra")
+      const finalAddress = useNewAddress ? {
+        ...newAddress,
+        direccion: {
+          ...newAddress.direccion,
+          ciudad: newAddress.direccion.ciudad === 'Otra' ? otraCiudad : newAddress.direccion.ciudad
+        }
+      } : selectedAddress;
 
       // Preparar datos de la orden
       const orderData: OrderForm = {
@@ -138,7 +189,7 @@ const CheckoutPageOptimized: React.FC = () => {
             ? item.producto.comerciante 
             : item.producto.comerciante._id
         })),
-        direccionEntrega: useNewAddress ? newAddress : selectedAddress,
+        direccionEntrega: finalAddress,
         metodoPago: {
           tipo: paymentMethod,
           datos: {}
@@ -199,7 +250,14 @@ const CheckoutPageOptimized: React.FC = () => {
       let address: Address;
       
       if (useNewAddress) {
-        address = newAddress;
+        // Usar ciudad personalizada si seleccionó "Otra"
+        address = {
+          ...newAddress,
+          direccion: {
+            ...newAddress.direccion,
+            ciudad: newAddress.direccion.ciudad === 'Otra' ? otraCiudad : newAddress.direccion.ciudad
+          }
+        };
         console.log('📍 Using new address:', address);
       } else {
         // Buscar la dirección seleccionada en el array de direcciones
@@ -533,36 +591,63 @@ const CheckoutPageOptimized: React.FC = () => {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Ciudad *
-                          </label>
-                          <input
-                            type="text"
-                            value={newAddress.direccion.ciudad}
-                            onChange={(e) => setNewAddress(prev => ({
-                              ...prev,
-                              direccion: { ...prev.direccion, ciudad: e.target.value }
-                            }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Ej: Bogotá"
-                            required
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
                             Departamento *
                           </label>
-                          <input
-                            type="text"
+                          <select
                             value={newAddress.direccion.departamento}
                             onChange={(e) => setNewAddress(prev => ({
                               ...prev,
-                              direccion: { ...prev.direccion, departamento: e.target.value }
+                              direccion: { ...prev.direccion, departamento: e.target.value, ciudad: '' }
                             }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="Ej: Cundinamarca"
                             required
-                          />
+                          >
+                            <option value="">Seleccionar departamento</option>
+                            {departamentos.map(dept => (
+                              <option key={dept} value={dept}>{dept}</option>
+                            ))}
+                          </select>
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Ciudad *
+                          </label>
+                          <select
+                            value={newAddress.direccion.ciudad}
+                            onChange={(e) => {
+                              setNewAddress(prev => ({
+                                ...prev,
+                                direccion: { ...prev.direccion, ciudad: e.target.value }
+                              }));
+                              if (e.target.value !== 'Otra') {
+                                setOtraCiudad('');
+                              }
+                            }}
+                            disabled={!newAddress.direccion.departamento}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            required
+                          >
+                            <option value="">Seleccionar ciudad</option>
+                            {ciudadesDisponibles.map(ciudad => (
+                              <option key={ciudad} value={ciudad}>{ciudad}</option>
+                            ))}
+                          </select>
+                        </div>
+                        {newAddress.direccion.ciudad === 'Otra' && (
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Nombre de la ciudad *
+                            </label>
+                            <input
+                              type="text"
+                              value={otraCiudad}
+                              onChange={(e) => setOtraCiudad(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Escriba el nombre de la ciudad"
+                              required
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -599,7 +684,7 @@ const CheckoutPageOptimized: React.FC = () => {
                         <a href="/privacidad" target="_blank" className="text-blue-600 hover:underline font-medium">
                           política de privacidad
                         </a>{' '}
-                        de SurAndino
+                        de AndinoExpress
                       </span>
                     </label>
                   </div>
@@ -725,20 +810,15 @@ const CheckoutPageOptimized: React.FC = () => {
                           <p>4️⃣ Regresarás automáticamente con la confirmación</p>
                           <p>5️⃣ Recibirás tu comprobante por email</p>
                         </div>
-                        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mt-3">
-                          <p className="font-semibold text-yellow-900 mb-2">🧪 Modo Sandbox - Datos de Prueba:</p>
-                          <div className="text-xs text-yellow-800 space-y-1">
-                            <p><strong>✅ RECOMENDADO - Nequi/PSE:</strong></p>
-                            <p>• Selecciona Nequi o PSE en el widget de Wompi</p>
-                            <p>• Usa cualquier número de celular o banco</p>
-                            <p>• Estos métodos son más estables en sandbox</p>
-                            <hr className="my-2 border-yellow-300" />
-                            <p><strong>💳 Tarjeta de prueba (puede tener errores):</strong></p>
-                            <p>• Número: 4242424242424242 (sin espacios)</p>
-                            <p>• CVC: 123 | Fecha: 12/25 o posterior</p>
-                            <p>• Nombre: TEST CARD</p>
-                            <p className="text-xs text-yellow-700 mt-2 italic font-semibold">
-                              ⚠️ Si el widget de tarjetas no funciona, usa Nequi o PSE que son más estables en sandbox.
+                        <div className="bg-green-50 border border-green-200 rounded p-3 mt-3">
+                          <p className="font-semibold text-green-900 mb-2">🔒 Pago Seguro con Wompi</p>
+                          <div className="text-xs text-green-800 space-y-1">
+                            <p><strong>✅ Métodos de pago disponibles:</strong></p>
+                            <p>• 💳 Tarjetas de crédito y débito (Visa, Mastercard)</p>
+                            <p>• 🏦 PSE - Transferencia bancaria</p>
+                            <p>• 📱 Nequi - Pago desde tu celular</p>
+                            <p className="text-xs text-green-700 mt-2 italic font-semibold">
+                              🔐 Todos tus datos están protegidos con encriptación de última generación.
                             </p>
                           </div>
                         </div>

@@ -507,8 +507,8 @@ const WompiReturnPage: React.FC = () => {
         <div className="mt-6 pt-4 border-t border-gray-200">
           <p className="text-xs text-gray-500">
             Si tienes problemas con tu pago, puedes contactar nuestro soporte en{' '}
-            <a href="mailto:soporte@surandino.com" className="text-blue-600 hover:underline">
-              soporte@surandino.com
+            <a href="mailto:soporte@andinoexpress.com" className="text-blue-600 hover:underline">
+              soporte@andinoexpress.com
             </a>
           </p>
         </div>

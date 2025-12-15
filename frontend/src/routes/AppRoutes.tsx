@@ -13,6 +13,8 @@ import AboutUsPage from '../pages/AboutUsPage';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage';
+import SelectRolePage from '../pages/auth/SelectRolePage';
+import CompleteMerchantProfilePage from '../pages/auth/CompleteMerchantProfilePage';
 import OAuthCallback from '../pages/auth/OAuthCallback';
 import ProductsPage from '../pages/products/ProductsPage';
 import ProductDetailPage from '../pages/products/ProductDetailPage';
@@ -107,6 +109,8 @@ const AppRoutes: React.FC = () => {
           } 
         />
         <Route path="verificar-email" element={<VerifyEmailPage />} />
+        <Route path="select-role" element={<SelectRolePage />} />
+        <Route path="complete-merchant-profile" element={<CompleteMerchantProfilePage />} />
         
         {/* Callback de OAuth - siempre accesible */}
         <Route path="auth/callback" element={<OAuthCallback />} />

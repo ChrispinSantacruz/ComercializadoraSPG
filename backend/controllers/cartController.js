@@ -36,9 +36,18 @@ const obtenerCarrito = async (req, res) => {
 
     if (productosDisponibles.length !== carrito.productos.length) {
       carrito.productos = productosDisponibles;
-      await carrito.calcularTotales();
-      await carrito.save();
     }
+    
+    // SIEMPRE recalcular totales para asegurar que el costo de envío esté actualizado
+    carrito.calcularTotales();
+    
+    // Marcar el campo como modificado para que Mongoose lo guarde
+    carrito.markModified('costoEnvio');
+    carrito.markModified('total');
+    carrito.markModified('subtotal');
+    carrito.markModified('impuestos');
+    
+    await carrito.save();
 
     successResponse(res, 'Carrito obtenido exitosamente', carrito);
 
@@ -90,8 +99,7 @@ const agregarAlCarrito = async (req, res) => {
         return errorResponse(res, `Stock insuficiente. Disponible: ${producto.stock}`, 400);
       }
       productoExistente.cantidad = nuevaCantidad;
-      // Recalcular subtotal del producto existente
-      productoExistente.subtotal = nuevaCantidad * (producto.precioOferta || producto.precio);
+      console.log(`➕ Actualizando producto existente: ${productoExistente.nombre}, cantidad: ${nuevaCantidad}`);
     } else {
       carrito.productos.push({
         producto: productoId,
@@ -105,10 +113,22 @@ const agregarAlCarrito = async (req, res) => {
         stockDisponible: producto.stock,
         disponible: producto.stock >= cantidad
       });
+      console.log(`➕ Agregando nuevo producto: ${producto.nombre}, cantidad: ${cantidad}`);
     }
 
-    await carrito.calcularTotales();
+    // Recalcular totales (ahora también actualiza subtotales de items)
+    carrito.calcularTotales();
+    
+    // Marcar como modificado
+    carrito.markModified('productos');
+    carrito.markModified('subtotal');
+    carrito.markModified('impuestos');
+    carrito.markModified('costoEnvio');
+    carrito.markModified('total');
+    
     await carrito.save();
+    
+    console.log(`💾 Carrito guardado. Productos: ${carrito.productos.length}, Subtotal: ${carrito.subtotal}, Total: ${carrito.total}`);
 
     await carrito.populate({
       path: 'productos.producto',
@@ -169,9 +189,23 @@ const actualizarCantidad = async (req, res) => {
       return errorResponse(res, 'Producto no encontrado en el carrito', 404);
     }
 
+    const cantidadAnterior = productoEnCarrito.cantidad;
     productoEnCarrito.cantidad = cantidad;
-    await carrito.calcularTotales();
+    
+    console.log(`📝 Actualizando cantidad: ${cantidadAnterior} → ${cantidad}`);
+    
+    // Recalcular totales (ahora también actualiza subtotales de items)
+    carrito.calcularTotales();
+    
+    // Marcar como modificado
+    carrito.markModified('productos');
+    carrito.markModified('subtotal');
+    carrito.markModified('impuestos');
+    carrito.markModified('total');
+    
     await carrito.save();
+    
+    console.log(`💾 Cantidad actualizada. Subtotal item: ${productoEnCarrito.subtotal}, Subtotal total: ${carrito.subtotal}`);
 
     await carrito.populate({
       path: 'productos.producto',
@@ -202,12 +236,26 @@ const eliminarDelCarrito = async (req, res) => {
       return errorResponse(res, 'Carrito no encontrado', 404);
     }
 
+    const cantidadAnterior = carrito.productos.length;
     carrito.productos = carrito.productos.filter(item => 
       item.producto.toString() !== productoId
     );
+    
+    console.log(`🗑️ Producto eliminado. Productos antes: ${cantidadAnterior}, después: ${carrito.productos.length}`);
 
-    await carrito.calcularTotales();
+    // Recalcular totales
+    carrito.calcularTotales();
+    
+    // Marcar como modificado para asegurar que Mongoose guarde los cambios
+    carrito.markModified('productos');
+    carrito.markModified('subtotal');
+    carrito.markModified('impuestos');
+    carrito.markModified('costoEnvio');
+    carrito.markModified('total');
+    
     await carrito.save();
+    
+    console.log(`💾 Carrito guardado. Subtotal: ${carrito.subtotal}, Total: ${carrito.total}`);
 
     await carrito.populate({
       path: 'productos.producto',
@@ -463,6 +511,39 @@ const obtenerCuponesDisponibles = async (req, res) => {
   }
 };
 
+// @desc    Recalcular totales del carrito (útil después de cambios en lógica de cálculo)
+// @route   POST /api/cart/recalculate
+// @access  Private
+const recalcularCarrito = async (req, res) => {
+  try {
+    let carrito = await Cart.findOne({ usuario: req.usuario.id });
+    
+    if (!carrito) {
+      return errorResponse(res, 'Carrito no encontrado', 404);
+    }
+
+    // Forzar recálculo de totales
+    carrito.calcularTotales();
+    await carrito.save();
+
+    // Repoblar con los datos de productos
+    await carrito.populate({
+      path: 'productos.producto',
+      select: 'nombre precio imagenes stock estado comerciante',
+      populate: {
+        path: 'comerciante',
+        select: 'nombre'
+      }
+    });
+
+    successResponse(res, 'Carrito recalculado exitosamente', carrito);
+
+  } catch (error) {
+    console.error('Error recalculando carrito:', error);
+    errorResponse(res, 'Error interno del servidor', 500);
+  }
+};
+
 module.exports = {
   obtenerCarrito,
   agregarAlCarrito,
@@ -471,5 +552,6 @@ module.exports = {
   limpiarCarrito,
   aplicarCupon,
   removerCupon,
-  obtenerCuponesDisponibles
+  obtenerCuponesDisponibles,
+  recalcularCarrito
 }; 

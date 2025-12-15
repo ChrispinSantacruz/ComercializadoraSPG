@@ -1,44 +1,102 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { signInWithGoogle, signInWithFacebook } from '../../config/firebase';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../stores/authStore';
 
 interface SocialLoginButtonsProps {
   isLoading?: boolean;
 }
 
 const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ isLoading = false }) => {
+  const navigate = useNavigate();
+  const { setUser, setToken } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-  const handleGoogleLogin = () => {
-    if (isLoading) return;
+  const handleSocialLogin = async (provider: 'google' | 'facebook') => {
+    if (isLoading || loading) return;
     
-    // Verificar si OAuth está disponible
-    fetch(`${API_BASE_URL}/api/auth/google`)
-      .then(response => {
-        if (response.status === 404) {
-          alert('Google OAuth no está configurado en el servidor');
-          return;
-        }
-        window.location.href = `${API_BASE_URL}/api/auth/google`;
-      })
-      .catch(() => {
-        window.location.href = `${API_BASE_URL}/api/auth/google`;
+    setLoading(true);
+    setError('');
+
+    try {
+      console.log(`🔐 Iniciando login con ${provider}...`);
+      let result;
+      
+      if (provider === 'google') {
+        result = await signInWithGoogle();
+      } else {
+        result = await signInWithFacebook();
+      }
+
+      console.log('✓ Firebase auth exitosa:', result.user.email);
+      const user = result.user;
+      const idToken = await user.getIdToken();
+
+      console.log(`📡 Enviando token al backend: ${API_BASE_URL}/api/auth/firebase-login`);
+      
+      // Enviar el token de Firebase al backend para validación y registro/login
+      const response = await fetch(`${API_BASE_URL}/api/auth/firebase-login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idToken,
+          provider,
+          email: user.email,
+          nombre: user.displayName,
+          photoURL: user.photoURL,
+        }),
       });
+
+      console.log('📥 Respuesta del backend:', response.status);
+      const data = await response.json();
+      console.log('📦 Datos recibidos:', data);
+
+      if (!response.ok || !data.exito) {
+        throw new Error(data.mensaje || 'Error al autenticar con ' + provider);
+      }
+
+      // Si requiere selección de rol, redirigir a pantalla de selección
+      if (data.datos.requiereSeleccionRol) {
+        console.log('🔀 Requiere selección de rol');
+        navigate('/select-role', { state: { usuario: data.datos.usuario } });
+        return;
+      }
+
+      // Guardar token y usuario en el store
+      console.log('💾 Guardando en store...');
+      setToken(data.datos.token);
+      setUser(data.datos.usuario);
+
+      // Redirigir según el rol
+      console.log('🚀 Redirigiendo a:', data.datos.usuario.rol);
+      if (data.datos.usuario.rol === 'administrador') {
+        navigate('/admin');
+      } else if (data.datos.usuario.rol === 'comerciante') {
+        navigate('/merchant');
+      } else {
+        navigate('/');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Error en login social:', error);
+      setError(error.message || 'Error al iniciar sesión con ' + provider);
+      alert('Error: ' + (error.message || 'Error al iniciar sesión'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    handleSocialLogin('google');
   };
 
   const handleFacebookLogin = () => {
-    if (isLoading) return;
-    
-    // Verificar si OAuth está disponible
-    fetch(`${API_BASE_URL}/api/auth/facebook`)
-      .then(response => {
-        if (response.status === 404) {
-          alert('Facebook OAuth no está configurado en el servidor');
-          return;
-        }
-        window.location.href = `${API_BASE_URL}/api/auth/facebook`;
-      })
-      .catch(() => {
-        window.location.href = `${API_BASE_URL}/api/auth/facebook`;
-      });
+    handleSocialLogin('facebook');
   };
 
   return (
