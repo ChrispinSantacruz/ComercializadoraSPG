@@ -160,6 +160,11 @@ public/uploads/
 *.key
 *.crt
 
+# Firebase Service Account (SENSITIVE - DO NOT COMMIT)
+firebase-service-account.json
+**/firebase-service-account.json
+backend/config/firebase-service-account.json
+
 # PM2
 .pm2/
 
