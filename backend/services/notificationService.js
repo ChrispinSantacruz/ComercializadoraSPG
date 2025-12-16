@@ -82,15 +82,15 @@ class NotificationService {
     return await this.createNotification(notificationData);
   }
 
-  // Notificar producto aprobado
-  async notifyProductApproved(product, merchant) {
+  // Notificar producto creado exitosamente
+  async notifyProductCreated(product, merchant) {
     const notificationData = {
       recipient: merchant._id,
       recipientEmail: merchant.email,
       recipientName: merchant.nombre,
-      type: 'product_approval',
-      title: 'Producto Aprobado',
-      message: `Tu producto "${product.nombre}" ha sido aprobado y ya está visible en la tienda`,
+      type: 'product_created',
+      title: 'Producto Publicado',
+      message: `Tu producto "${product.nombre}" ha sido publicado exitosamente y ya está disponible en la tienda`,
       data: { productId: product._id, productName: product.nombre },
       channels: ['email', 'push'],
       actionUrl: `/products/${product._id}`

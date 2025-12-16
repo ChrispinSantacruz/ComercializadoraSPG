@@ -1,1 +1,29 @@
- 
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8f9fa"/>
+      <stop offset="100%" style="stop-color:#e9ecef"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="300" fill="url(#bgGrad)" rx="8"/>
+  
+  <!-- Border -->
+  <rect x="2" y="2" width="396" height="296" fill="none" stroke="#dee2e6" stroke-width="2" rx="6"/>
+  
+  <!-- Image Icon -->
+  <g transform="translate(170, 120)">
+    <rect width="60" height="40" fill="#6c757d" rx="4"/>
+    <circle cx="45" cy="15" r="6" fill="#adb5bd"/>
+    <polygon points="15,25 25,15 35,20 45,10 55,25 55,35 15,35" fill="#adb5bd"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="200" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#6c757d">
+    Imagen no disponible
+  </text>
+  <text x="200" y="220" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#adb5bd">
+    AndinoExpress
+  </text>
+</svg> 

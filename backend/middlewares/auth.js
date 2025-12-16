@@ -95,9 +95,8 @@ const verificarRol = (...rolesPermitidos) => {
 };
 
 // Middleware específicos por rol
-const soloAdministrador = verificarRol('administrador');
-const soloComerciante = verificarRol('comerciante', 'administrador');
-const soloCliente = verificarRol('cliente', 'comerciante', 'administrador');
+const soloComerciante = verificarRol('comerciante');
+const soloCliente = verificarRol('cliente', 'comerciante');
 
 // Middleware para verificar propiedad del recurso
 const verificarPropiedad = (modeloNombre, campoPropietario = 'usuario') => {
@@ -113,12 +112,6 @@ const verificarPropiedad = (modeloNombre, campoPropietario = 'usuario') => {
           exito: false,
           mensaje: `${modeloNombre} no encontrado.`
         });
-      }
-      
-      // Los administradores pueden acceder a todo
-      if (req.usuario.rol === 'administrador') {
-        req.recurso = recurso;
-        return next();
       }
       
       // Verificar si el usuario es propietario del recurso
@@ -147,7 +140,7 @@ const verificarPropiedad = (modeloNombre, campoPropietario = 'usuario') => {
 // Middleware para verificar si el comerciante puede realizar la acción
 const verificarComercianteActivo = async (req, res, next) => {
   try {
-    if (req.usuario.rol !== 'comerciante' && req.usuario.rol !== 'administrador') {
+    if (req.usuario.rol !== 'comerciante') {
       return res.status(403).json({
         exito: false,
         mensaje: 'Solo los comerciantes pueden realizar esta acción.'
@@ -241,7 +234,6 @@ module.exports = {
   protect: verificarToken,
   verificarRol,
   authorize: verificarRol,
-  soloAdministrador,
   soloComerciante,
   soloCliente,
   verificarPropiedad,

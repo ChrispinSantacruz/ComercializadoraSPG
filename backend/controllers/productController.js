@@ -196,7 +196,7 @@ const crearProducto = async (req, res) => {
       stock: parseInt(req.body.stock) || 0,
       categoria: req.body.categoria,
       comerciante: req.usuario.id,
-      estado: 'pendiente' // Los productos necesitan aprobación del administrador
+      estado: 'aprobado' // Los productos se aprueban automáticamente
     };
 
     // Procesar tags si existen
@@ -288,7 +288,7 @@ const crearProducto = async (req, res) => {
 
     console.log('✅ Producto creado exitosamente:', producto._id);
 
-    successResponse(res, 'Producto creado exitosamente. Está pendiente de aprobación por el administrador.', producto, 201);
+    successResponse(res, 'Producto creado exitosamente y ya está disponible en el mercado.', producto, 201);
 
   } catch (error) {
     console.error('❌ Error creando producto:', error);
@@ -315,10 +315,7 @@ const actualizarProducto = async (req, res) => {
       return errorResponse(res, 'No tienes permiso para actualizar este producto', 403);
     }
 
-    // Si el producto está aprobado y se actualiza, vuelve a pendiente
-    if (producto.estado === 'aprobado') {
-      req.body.estado = 'pendiente';
-    }
+    // Los productos mantienen su estado aprobado al actualizarse
 
     const productoActualizado = await Product.findByIdAndUpdate(
       req.params.id,

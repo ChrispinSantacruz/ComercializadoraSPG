@@ -19,7 +19,7 @@ class NotificationService {
     }
   }
 
-  // Notificar aprobación de producto
+  // Notificar creación exitosa de producto
   static async notificarProductoAprobado(comerciante, producto) {
     try {
       const notificacion = await this.crearNotificacion({

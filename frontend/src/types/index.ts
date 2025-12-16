@@ -29,7 +29,7 @@ export interface User {
     codigoPostal?: string;
     pais?: string;
   };
-  rol: 'cliente' | 'comerciante' | 'administrador';
+  rol: 'cliente' | 'comerciante';
   nombreEmpresa?: string;
   avatar?: string;
   banner?: string;
@@ -80,7 +80,7 @@ export interface Product {
   imagenes: string[];
   categoria: string | Category;
   comerciante: string | User;
-  estado: 'pendiente' | 'aprobado' | 'rechazado';
+  estado: 'aprobado' | 'pausado' | 'agotado';
   especificaciones: Record<string, any>;
   tags: string[];
   fechaCreacion: string;
@@ -318,7 +318,6 @@ export interface DashboardStats {
   resumenGeneral: {
     totalProductos: number;
     productosActivos: number;
-    productosPendientes: number;
     pedidosDelMes: number;
     ventasDelMes: number;
     reseñasDelMes: number;

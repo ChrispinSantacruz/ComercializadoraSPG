@@ -109,18 +109,8 @@ const productSchema = new mongoose.Schema({
   // Estado del producto
   estado: {
     type: String,
-    enum: ['pendiente', 'aprobado', 'rechazado', 'pausado', 'agotado'],
-    default: 'pendiente'
-  },
-  
-  // Comentarios del administrador
-  comentarioAdmin: {
-    texto: String,
-    fecha: Date,
-    administrador: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }
+    enum: ['aprobado', 'pausado', 'agotado'],
+    default: 'aprobado'
   },
   
   // Estadísticas del producto

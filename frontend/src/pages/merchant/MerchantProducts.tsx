@@ -102,9 +102,9 @@ const MerchantProducts: React.FC = () => {
 
   const getStatusBadge = (estado: string) => {
     const styles = {
-      pendiente: 'bg-yellow-100 text-yellow-800',
       aprobado: 'bg-green-100 text-green-800',
-      rechazado: 'bg-red-100 text-red-800'
+      pausado: 'bg-yellow-100 text-yellow-800',
+      agotado: 'bg-red-100 text-red-800'
     };
     
     return (
@@ -227,9 +227,9 @@ const MerchantProducts: React.FC = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Todos los estados</option>
-              <option value="pendiente">Pendiente</option>
               <option value="aprobado">Aprobado</option>
-              <option value="rechazado">Rechazado</option>
+              <option value="pausado">Pausado</option>
+              <option value="agotado">Agotado</option>
             </select>
           </div>
 

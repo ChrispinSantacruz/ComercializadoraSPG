@@ -36,16 +36,12 @@ import MerchantProducts from '../pages/merchant/MerchantProducts';
 import MerchantOrders from '../pages/merchant/MerchantOrders';
 import MerchantAnalytics from '../pages/merchant/MerchantAnalytics';
 
-// Páginas privadas - Admin
-import AdminDashboard from '../pages/admin/AdminDashboard';
-import AdminUsers from '../pages/admin/AdminUsers';
-import AdminProducts from '../pages/admin/AdminProducts';
-import AdminOrders from '../pages/admin/AdminOrders';
+
 
 // Componente de protección de rutas
 const ProtectedRoute: React.FC<{
   children: React.ReactNode;
-  requiredRole?: 'cliente' | 'comerciante' | 'administrador';
+  requiredRole?: 'cliente' | 'comerciante';
 }> = ({ children, requiredRole }) => {
   const { isAuthenticated, user } = useAuthStore();
 
@@ -67,8 +63,6 @@ const RoleBasedRedirect: React.FC = () => {
   if (!user) return <Navigate to="/" replace />;
 
   switch (user.rol) {
-    case 'administrador':
-      return <Navigate to="/admin" replace />;
     case 'comerciante':
       return <Navigate to="/merchant" replace />;
     case 'cliente':
@@ -161,27 +155,7 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } />
 
-        {/* Rutas de administrador */}
-        <Route path="admin" element={
-          <ProtectedRoute requiredRole="administrador">
-            <AdminDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="admin/users" element={
-          <ProtectedRoute requiredRole="administrador">
-            <AdminUsers />
-          </ProtectedRoute>
-        } />
-        <Route path="admin/products" element={
-          <ProtectedRoute requiredRole="administrador">
-            <AdminProducts />
-          </ProtectedRoute>
-        } />
-        <Route path="admin/orders" element={
-          <ProtectedRoute requiredRole="administrador">
-            <AdminOrders />
-          </ProtectedRoute>
-        } />
+
       </Route>
 
       {/* Ruta 404 */}
