@@ -74,6 +74,12 @@ const AboutUsPage: React.FC = () => {
       role: 'Directora de Operaciones',
       image: '👩‍🔧',
       description: 'Garantiza que cada entrega llegue perfecta y a tiempo, optimizando todos nuestros procesos'
+    },
+    {
+      name: 'Fabio Narváez',
+      role: 'Líder de Atención al Cliente',
+      image: '👨‍💬',
+      description: 'Experto en brindar un servicio excepcional y resolver cualquier inquietud de nuestros usuarios'
     }
   ];
 
@@ -225,7 +231,7 @@ const AboutUsPage: React.FC = () => {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {team.map((member, index) => (
               <div key={index} className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow">
                 <div className="text-6xl mb-4">{member.image}</div>
