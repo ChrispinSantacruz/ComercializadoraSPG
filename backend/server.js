@@ -91,6 +91,8 @@ const corsOptions = {
     'http://localhost:3001',
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3001',
+    'https://andinoexpress.com',
+    'https://www.andinoexpress.com',
     process.env.FRONTEND_URL,
     process.env.ADMIN_URL
   ].filter(Boolean), // Filtrar valores undefined
