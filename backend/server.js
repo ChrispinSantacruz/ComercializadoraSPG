@@ -38,6 +38,7 @@ const addressRoutes = require('./routes/addressRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const wompiRoutes = require('./routes/wompi');
+const maintenanceRoutes = require('./routes/maintenanceRoutes');
 
 // Importar middlewares
 const errorHandler = require('./middlewares/errorHandler');
@@ -343,6 +344,7 @@ app.use('/api/addresses', addressRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/wompi', wompiRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 // Middlewares de manejo de errores
 app.use(notFound);
