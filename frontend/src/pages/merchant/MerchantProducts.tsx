@@ -261,7 +261,7 @@ const MerchantProducts: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products && Array.isArray(products) && products.map((product) => (
+        {products && Array.isArray(products) && products.filter(product => product && product._id).map((product) => (
           <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="relative h-48 bg-gray-200">
               <img
@@ -294,7 +294,7 @@ const MerchantProducts: React.FC = () => {
               </div>
               
               <div className="text-xs text-gray-500 mb-3">
-                {getCategoryName(typeof product.categoria === 'string' ? product.categoria : product.categoria._id)}
+                {product.categoria ? getCategoryName(typeof product.categoria === 'string' ? product.categoria : product.categoria?._id || 'Sin categoría') : 'Sin categoría'}
               </div>
               
               <div className="flex space-x-2">

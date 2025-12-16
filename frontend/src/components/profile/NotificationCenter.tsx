@@ -63,7 +63,7 @@ const NotificationCenter: React.FC = () => {
       
       console.log('🔑 Token a enviar:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
       
-      const response = await fetch(`${apiUrl}/notifications/user`, {
+      const response = await fetch(`${apiUrl}/api/notifications/user`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -168,7 +168,7 @@ const NotificationCenter: React.FC = () => {
         return;
       }
       
-      const response = await fetch(`${apiUrl}/notifications/${notificationId}/read`, {
+      const response = await fetch(`${apiUrl}/api/notifications/${notificationId}/read`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

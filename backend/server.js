@@ -128,9 +128,9 @@ app.use('/uploads', (req, res, next) => {
   }
 });
 
-// Middleware de logging específico para Wompi
+// Middleware de logging específico para rutas importantes
 app.use((req, res, next) => {
-  if (req.url.includes('/wompi/')) {
+  if (req.url.includes('/wompi/') || req.url.includes('/auth/')) {
     console.log(`🔍 ${new Date().toISOString()} - ${req.method} ${req.url}`);
     if (req.body && Object.keys(req.body).length > 0) {
       console.log('📝 Body:', JSON.stringify(req.body, null, 2));
@@ -186,6 +186,7 @@ app.get('/', (req, res) => {
     message: '🚀 Bienvenido a Comercializadora SPG API',
     version: '1.0.0',
     status: 'Activo',
+    timestamp: new Date().toISOString(),
     endpoints: {
       auth: '/api/auth',
       users: '/api/users',
@@ -198,6 +199,20 @@ app.get('/', (req, res) => {
       payments: '/api/payments',
       addresses: '/api/addresses'
     }
+  });
+});
+
+// Ruta de prueba para verificar que las rutas de auth funcionan
+app.get('/api/auth/test', (req, res) => {
+  res.json({
+    message: '✅ Auth routes are working',
+    timestamp: new Date().toISOString(),
+    availableRoutes: [
+      'POST /api/auth/register',
+      'POST /api/auth/login',
+      'POST /api/auth/reenviar-codigo',
+      'POST /api/auth/verificar-codigo'
+    ]
   });
 });
 
