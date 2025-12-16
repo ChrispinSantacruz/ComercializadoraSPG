@@ -151,39 +151,57 @@ router.get('/tool', (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mantenimiento de Productos - AndinoExpress</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f9fafb; padding: 32px; font-family: Arial, sans-serif; margin: 0; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card { background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); padding: 32px; }
+        .title { font-size: 24px; font-weight: bold; color: #374151; margin-bottom: 24px; }
+        .section { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+        .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; }
+        .btn-blue { background-color: #3b82f6; color: white; }
+        .btn-blue:hover { background-color: #2563eb; }
+        .btn-orange { background-color: #f97316; color: white; }
+        .btn-orange:hover { background-color: #ea580c; }
+        .input { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; }
+        .input:focus { outline: none; border-color: #3b82f6; }
+        .result { padding: 12px; border-radius: 6px; margin-top: 16px; font-size: 14px; }
+        .result-success { background-color: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+        .result-error { background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+        .result-info { background-color: #f0f9ff; border: 1px solid #bae6fd; color: #0c4a6e; }
+        .hidden { display: none; }
+        .orange-section { background-color: #fff7ed; border-color: #fed7aa; }
+        .orange-text { color: #c2410c; }
+        .label { display: block; font-weight: 500; color: #374151; margin-bottom: 8px; }
+        ul { margin: 8px 0; padding-left: 16px; }
+        li { margin: 4px 0; }
+        .small-text { font-size: 12px; color: #6b7280; }
+    </style>
 </head>
-<body class="bg-gray-50 p-8">
-    <div class="max-w-4xl mx-auto">
-        <div class="bg-white rounded-lg shadow-lg p-8">
-            <h1 class="text-2xl font-bold text-gray-800 mb-6">🛠️ Mantenimiento de Productos</h1>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 class="title">🛠️ Mantenimiento de Productos</h1>
             
-            <div class="space-y-6">
-                <!-- Estado actual -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h2 class="text-lg font-semibold mb-4">📊 Estado Actual</h2>
-                    <button onclick="checkStatus()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4">
-                        Verificar Estado
-                    </button>
-                    <div id="status-result" class="text-sm bg-gray-50 p-3 rounded hidden"></div>
-                </div>
+            <!-- Estado actual -->
+            <div class="section">
+                <h2 class="section-title">📊 Estado Actual</h2>
+                <button id="check-btn" class="btn btn-blue">Verificar Estado</button>
+                <div id="status-result" class="hidden"></div>
+            </div>
 
-                <!-- Actualización -->
-                <div class="border border-orange-200 rounded-lg p-4 bg-orange-50">
-                    <h2 class="text-lg font-semibold mb-4 text-orange-800">🔄 Actualizar Productos</h2>
-                    <p class="text-orange-700 mb-4">Esto actualizará todos los productos pendientes a estado "aprobado" y corregirá rutas de imágenes.</p>
-                    
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-orange-700 mb-2">Clave de actualización:</label>
-                        <input type="password" id="update-secret" placeholder="Ingresa la clave" value="admin-update-2024"
-                               class="w-full px-3 py-2 border border-orange-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
-                    </div>
-                    
-                    <button onclick="updateProducts()" class="bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600">
-                        Ejecutar Actualización
-                    </button>
-                    <div id="update-result" class="mt-4 text-sm hidden"></div>
+            <!-- Actualización -->
+            <div class="section orange-section">
+                <h2 class="section-title orange-text">🔄 Actualizar Productos</h2>
+                <p class="orange-text">Esto actualizará todos los productos pendientes a estado "aprobado" y corregirá rutas de imágenes.</p>
+                
+                <div style="margin-bottom: 16px;">
+                    <label class="label orange-text">Clave de actualización:</label>
+                    <input type="password" id="update-secret" placeholder="Ingresa la clave" value="admin-update-2024" class="input">
                 </div>
+                
+                <button id="update-btn" class="btn btn-orange">Ejecutar Actualización</button>
+                <div id="update-result" class="hidden"></div>
             </div>
         </div>
     </div>
@@ -191,47 +209,44 @@ router.get('/tool', (req, res) => {
     <script>
         const API_URL = window.location.origin + '/api/maintenance';
         
-        async function checkStatus() {
+        function checkStatus() {
             const resultDiv = document.getElementById('status-result');
-            resultDiv.className = 'text-sm bg-gray-50 p-3 rounded';
+            resultDiv.className = 'result result-info';
+            resultDiv.style.display = 'block';
             resultDiv.innerHTML = '🔄 Verificando estado...';
             
-            try {
-                const response = await fetch(API_URL + '/product-stats');
-                const data = await response.json();
-                
-                if (response.ok) {
-                    resultDiv.innerHTML = \`
-                        <h3 class="font-semibold text-green-700 mb-2">✅ Estado obtenido exitosamente</h3>
-                        <div class="space-y-2">
-                            <p><strong>Total de productos:</strong> \${data.totalProducts}</p>
-                            <p><strong>Productos con imágenes:</strong> \${data.productsWithImages}</p>
-                            <p><strong>Productos sin imágenes:</strong> \${data.productsWithoutImages}</p>
-                            <div>
-                                <strong>Por estado:</strong>
-                                <ul class="ml-4 mt-1">
-                                    \${data.statusBreakdown.map(stat => 
-                                        \`<li>• \${stat._id}: \${stat.count} productos</li>\`
-                                    ).join('')}
-                                </ul>
-                            </div>
-                            <p class="text-xs text-gray-500">Última actualización: \${new Date(data.timestamp).toLocaleString()}</p>
-                        </div>
-                    \`;
-                    resultDiv.className = 'text-sm bg-green-50 p-3 rounded border border-green-200';
-                } else {
-                    throw new Error(data.message || 'Error desconocido');
-                }
-            } catch (error) {
-                resultDiv.innerHTML = \`
-                    <h3 class="font-semibold text-red-700 mb-2">❌ Error</h3>
-                    <p>\${error.message}</p>
-                \`;
-                resultDiv.className = 'text-sm bg-red-50 p-3 rounded border border-red-200';
-            }
+            fetch(API_URL + '/product-stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    resultDiv.innerHTML = 
+                        '<h3><strong>✅ Estado obtenido exitosamente</strong></h3>' +
+                        '<div>' +
+                            '<p><strong>Total de productos:</strong> ' + data.totalProducts + '</p>' +
+                            '<p><strong>Productos con imágenes:</strong> ' + data.productsWithImages + '</p>' +
+                            '<p><strong>Productos sin imágenes:</strong> ' + data.productsWithoutImages + '</p>' +
+                            '<div>' +
+                                '<strong>Por estado:</strong>' +
+                                '<ul>' +
+                                    data.statusBreakdown.map(function(stat) {
+                                        return '<li>• ' + stat._id + ': ' + stat.count + ' productos</li>';
+                                    }).join('') +
+                                '</ul>' +
+                            '</div>' +
+                            '<p class="small-text">Última actualización: ' + new Date(data.timestamp).toLocaleString() + '</p>' +
+                        '</div>';
+                    resultDiv.className = 'result result-success';
+                })
+                .catch(function(error) {
+                    resultDiv.innerHTML = '<h3><strong>❌ Error</strong></h3><p>' + error.message + '</p>';
+                    resultDiv.className = 'result result-error';
+                });
         }
         
-        async function updateProducts() {
+        function updateProducts() {
             const secret = document.getElementById('update-secret').value;
             const resultDiv = document.getElementById('update-result');
             
@@ -240,56 +255,54 @@ router.get('/tool', (req, res) => {
                 return;
             }
             
-            resultDiv.className = 'mt-4 text-sm bg-blue-50 p-3 rounded';
+            resultDiv.className = 'result result-info';
+            resultDiv.style.display = 'block';
             resultDiv.innerHTML = '🔄 Ejecutando actualización...';
             
-            try {
-                const response = await fetch(API_URL + '/update-pending-products', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-update-secret': secret
-                    },
-                    body: JSON.stringify({ secret })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    resultDiv.innerHTML = \`
-                        <h3 class="font-semibold text-green-700 mb-2">✅ Actualización completada</h3>
-                        <div class="space-y-2">
-                            <p><strong>Productos pendientes actualizados:</strong> \${data.pendingUpdated}</p>
-                            <p><strong>Productos rechazados actualizados:</strong> \${data.rejectedUpdated}</p>
-                            <div>
-                                <strong>Estado final:</strong>
-                                <ul class="ml-4 mt-1">
-                                    \${data.stats.map(stat => 
-                                        \`<li>• \${stat._id}: \${stat.count} productos</li>\`
-                                    ).join('')}
-                                </ul>
-                            </div>
-                            <p class="text-xs text-gray-500">Completado: \${new Date(data.timestamp).toLocaleString()}</p>
-                        </div>
-                    \`;
-                    resultDiv.className = 'mt-4 text-sm bg-green-50 p-3 rounded border border-green-200';
-                    
-                    // Auto-refresh status
-                    setTimeout(checkStatus, 2000);
-                } else {
-                    throw new Error(data.error || data.message || 'Error desconocido');
+            fetch(API_URL + '/update-pending-products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-update-secret': secret
+                },
+                body: JSON.stringify({ secret: secret })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
                 }
-            } catch (error) {
-                resultDiv.innerHTML = \`
-                    <h3 class="font-semibold text-red-700 mb-2">❌ Error en actualización</h3>
-                    <p>\${error.message}</p>
-                \`;
-                resultDiv.className = 'mt-4 text-sm bg-red-50 p-3 rounded border border-red-200';
-            }
+                
+                resultDiv.innerHTML = 
+                    '<h3><strong>✅ Actualización completada</strong></h3>' +
+                    '<div>' +
+                        '<p><strong>Productos pendientes actualizados:</strong> ' + data.pendingUpdated + '</p>' +
+                        '<p><strong>Productos rechazados actualizados:</strong> ' + data.rejectedUpdated + '</p>' +
+                        '<div>' +
+                            '<strong>Estado final:</strong>' +
+                            '<ul>' +
+                                data.stats.map(function(stat) {
+                                    return '<li>• ' + stat._id + ': ' + stat.count + ' productos</li>';
+                                }).join('') +
+                            '</ul>' +
+                        '</div>' +
+                        '<p class="small-text">Completado: ' + new Date(data.timestamp).toLocaleString() + '</p>' +
+                    '</div>';
+                resultDiv.className = 'result result-success';
+                
+                setTimeout(checkStatus, 2000);
+            })
+            .catch(function(error) {
+                resultDiv.innerHTML = '<h3><strong>❌ Error en actualización</strong></h3><p>' + error.message + '</p>';
+                resultDiv.className = 'result result-error';
+            });
         }
         
-        // Auto-check status on load
-        document.addEventListener('DOMContentLoaded', checkStatus);
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('check-btn').addEventListener('click', checkStatus);
+            document.getElementById('update-btn').addEventListener('click', updateProducts);
+            checkStatus();
+        });
     </script>
 </body>
 </html>
