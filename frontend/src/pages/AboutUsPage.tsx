@@ -78,7 +78,7 @@ const AboutUsPage: React.FC = () => {
     {
       name: 'Fabio Narváez',
       role: 'Líder de Atención al Cliente',
-      image: '👨‍�',
+      image: '🧑‍💼',
       description: 'Experto en brindar un servicio excepcional y resolver cualquier inquietud de nuestros usuarios'
     }
   ];
