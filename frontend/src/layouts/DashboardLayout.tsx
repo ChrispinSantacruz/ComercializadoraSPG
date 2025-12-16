@@ -36,15 +36,6 @@ const DashboardLayout: React.FC = () => {
       ];
     }
 
-    if (user?.rol === 'administrador') {
-      return [
-        ...baseItems,
-        { name: 'Panel Admin', href: '/admin', icon: '⚙️' },
-        { name: 'Usuarios', href: '/admin/users', icon: '👥' },
-        { name: 'Productos', href: '/admin/products', icon: '📋' },
-      ];
-    }
-
     // Cliente
     return [
       ...baseItems,
