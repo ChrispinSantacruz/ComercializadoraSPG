@@ -35,7 +35,7 @@ const NotificationCenter: React.FC = () => {
   const loadNotifications = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
       
       // Obtener token del authStore (disponible desde useAuthStore)
       const authStorage = localStorage.getItem('auth-storage');
@@ -143,7 +143,7 @@ const NotificationCenter: React.FC = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5001';
       
       // Obtener token del sistema de autenticación principal
       let token = null;

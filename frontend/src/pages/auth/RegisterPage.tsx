@@ -60,7 +60,7 @@ const RegisterPage: React.FC = () => {
       console.log('Enviando datos de registro:', formData);
       
       // Llamar al endpoint de registro (ya no autentica automáticamente)
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/register`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
