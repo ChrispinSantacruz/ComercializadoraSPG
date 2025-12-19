@@ -677,7 +677,6 @@ const ProfilePage: React.FC = () => {
                   </>
                 )}
               </div>
-              </div>
 
               <div className="flex space-x-4">
                 <button
