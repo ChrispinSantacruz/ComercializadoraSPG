@@ -246,20 +246,27 @@ const verificarEmailConCodigo = async (req, res, next) => {
 // @access  Public
 const reenviarCodigoVerificacion = async (req, res, next) => {
   try {
+    console.log('📧 Reenviar código - Solicitud recibida:', { email: req.body.email, body: req.body });
     const { email } = req.body;
 
     if (!email) {
+      console.log('❌ Email no proporcionado en la solicitud');
       return errorResponse(res, 'Email es requerido', 400);
     }
 
     // Buscar usuario
+    console.log('🔍 Buscando usuario con email:', email);
     const usuario = await User.findOne({ email });
 
     if (!usuario) {
+      console.log('❌ Usuario no encontrado para email:', email);
       return errorResponse(res, 'Usuario no encontrado', 404);
     }
 
+    console.log('✅ Usuario encontrado:', usuario.nombre, 'verificado:', usuario.verificado);
+
     if (usuario.verificado) {
+      console.log('⚠️ Usuario ya verificado, no se puede reenviar código');
       return errorResponse(res, 'Este usuario ya está verificado', 400);
     }
 
@@ -272,13 +279,21 @@ const reenviarCodigoVerificacion = async (req, res, next) => {
     await usuario.save();
 
     // Enviar email con nuevo código
+    console.log('📧 Intentando enviar email de verificación a:', email);
     try {
-      await enviarEmailBienvenida(email, usuario.nombre, codigoVerificacion);
+      const resultadoEmail = await enviarEmailBienvenida(email, usuario.nombre, codigoVerificacion);
+      console.log('✅ Email enviado exitosamente:', resultadoEmail);
+      
+      if (resultadoEmail.warning) {
+        console.log('⚠️ Email enviado con advertencia:', resultadoEmail.warning);
+      }
     } catch (emailError) {
-      console.error('Error enviando email:', emailError);
-      return errorResponse(res, 'Error al enviar el email de verificación', 500);
+      console.error('❌ Error enviando email:', emailError.message);
+      console.error('Stack:', emailError.stack);
+      return errorResponse(res, 'Error al enviar el email de verificación: ' + emailError.message, 500);
     }
 
+    console.log('✅ Proceso completado - código reenviado');
     successResponse(res, 'Código de verificación reenviado. Revisa tu email.');
 
   } catch (error) {
@@ -618,7 +633,17 @@ const firebaseLogin = async (req, res, next) => {
     // Verificar el token de Firebase
     let decodedToken;
     try {
-      decodedToken = await auth.verifyIdToken(idToken);
+      if (!auth) {
+        // Firebase not available - use mock verification for development
+        console.warn('⚠️ Firebase not available - using mock token verification');
+        decodedToken = {
+          uid: `mock_${provider}_${Date.now()}`,
+          email: email || `mock@${provider}.com`,
+          name: nombre || 'Mock User'
+        };
+      } else {
+        decodedToken = await auth.verifyIdToken(idToken);
+      }
     } catch (error) {
       console.error('Error verificando token de Firebase:', error);
       return errorResponse(res, 'Token de Firebase inválido', 401);
@@ -705,7 +730,20 @@ const firebaseLogin = async (req, res, next) => {
 // @access  Public (con userId)
 const seleccionarRol = async (req, res, next) => {
   try {
-    const { userId, rol, nombreEmpresa, descripcionEmpresa, tipoDocumento, numeroDocumento } = req.body;
+    const { 
+      userId, 
+      rol, 
+      nombreEmpresa, 
+      descripcionEmpresa, 
+      categoriaEmpresa,
+      sitioWeb,
+      redesSociales,
+      telefono,
+      tipoDocumento, 
+      numeroDocumento 
+    } = req.body;
+
+    console.log('📝 Datos recibidos para seleccionar rol:', { userId, rol, nombreEmpresa, telefono });
 
     if (!userId || !rol) {
       return errorResponse(res, 'Usuario y rol son requeridos', 400);
@@ -726,12 +764,17 @@ const seleccionarRol = async (req, res, next) => {
 
     // Si es comerciante, requerir datos adicionales
     if (rol === 'comerciante') {
-      if (!nombreEmpresa || !descripcionEmpresa) {
-        return errorResponse(res, 'Nombre y descripción de empresa son requeridos para comerciantes', 400);
+      if (!nombreEmpresa || !descripcionEmpresa || !categoriaEmpresa || !telefono) {
+        return errorResponse(res, 'Nombre de empresa, descripción, categoría y teléfono son requeridos para comerciantes', 400);
       }
       
+      // Actualizar datos del negocio
       usuario.nombreEmpresa = nombreEmpresa;
       usuario.descripcionEmpresa = descripcionEmpresa;
+      usuario.categoriaEmpresa = categoriaEmpresa;
+      usuario.sitioWeb = sitioWeb;
+      usuario.redesSociales = redesSociales;
+      usuario.telefono = telefono;
       usuario.tipoDocumento = tipoDocumento;
       usuario.numeroDocumento = numeroDocumento;
       

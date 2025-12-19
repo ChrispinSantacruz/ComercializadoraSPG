@@ -61,6 +61,31 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxlength: [500, 'La descripción no puede exceder 500 caracteres']
   },
+  categoriaEmpresa: {
+    type: String,
+    enum: ['Alimentación', 'Tecnología', 'Ropa', 'Hogar', 'Salud', 'Servicios', 'Deportes', 'Libros', 'Artesanías', 'Otro'],
+    sparse: true
+  },
+  sitioWeb: {
+    type: String,
+    trim: true,
+    match: [/^https?:\/\/.+/, 'URL inválida']
+  },
+  redesSociales: {
+    facebook: String,
+    instagram: String,
+    twitter: String,
+    linkedin: String
+  },
+  horarioAtencion: {
+    lunes: { apertura: String, cierre: String, cerrado: Boolean },
+    martes: { apertura: String, cierre: String, cerrado: Boolean },
+    miercoles: { apertura: String, cierre: String, cerrado: Boolean },
+    jueves: { apertura: String, cierre: String, cerrado: Boolean },
+    viernes: { apertura: String, cierre: String, cerrado: Boolean },
+    sabado: { apertura: String, cierre: String, cerrado: Boolean },
+    domingo: { apertura: String, cierre: String, cerrado: Boolean }
+  },
   tipoDocumento: {
     type: String,
     enum: ['NIT', 'RUT', 'Cedula', 'Pasaporte'],

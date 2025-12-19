@@ -84,8 +84,25 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ isLoading = fal
       
     } catch (error: any) {
       console.error('❌ Error en login social:', error);
-      setError(error.message || 'Error al iniciar sesión con ' + provider);
-      alert('Error: ' + (error.message || 'Error al iniciar sesión'));
+      
+      // Manejar errores específicos de Firebase
+      if (error.code === 'auth/popup-closed-by-user') {
+        console.log('👤 Usuario canceló la autenticación');
+        setError(''); // No mostrar error si el usuario canceló intencionalmente
+        return; // Salir sin mostrar alert
+      } else if (error.code === 'auth/popup-blocked') {
+        setError('Popup bloqueado. Por favor, permite los popups para este sitio.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        console.log('🔄 Popup cancelado por nueva solicitud');
+        setError('');
+        return;
+      } else {
+        setError(error.message || 'Error al iniciar sesión con ' + provider);
+      }
+      
+      if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+        alert('Error: ' + (error.message || 'Error al iniciar sesión'));
+      }
     } finally {
       setLoading(false);
     }

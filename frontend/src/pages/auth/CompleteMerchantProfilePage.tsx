@@ -9,6 +9,14 @@ const CompleteMerchantProfilePage: React.FC = () => {
   const [formData, setFormData] = useState({
     nombreEmpresa: '',
     descripcionEmpresa: '',
+    categoriaEmpresa: '',
+    sitioWeb: '',
+    redesSociales: {
+      facebook: '',
+      instagram: '',
+      twitter: ''
+    },
+    telefono: '',
     tipoDocumento: '',
     numeroDocumento: ''
   });
@@ -23,8 +31,8 @@ const CompleteMerchantProfilePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.nombreEmpresa || !formData.descripcionEmpresa) {
-      setError('Por favor completa todos los campos requeridos');
+    if (!formData.nombreEmpresa || !formData.descripcionEmpresa || !formData.categoriaEmpresa || !formData.telefono) {
+      setError('Por favor completa todos los campos requeridos (*)');
       return;
     }
 
@@ -115,6 +123,93 @@ const CompleteMerchantProfilePage: React.FC = () => {
               <p className="text-sm text-gray-500 mt-1">
                 {formData.descripcionEmpresa.length}/500 caracteres
               </p>
+            </div>
+
+            {/* Categoría de Empresa */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <span className="inline mr-2">🏷️</span>
+                Categoría del Negocio *
+              </label>
+              <select
+                value={formData.categoriaEmpresa}
+                onChange={(e) => setFormData({ ...formData, categoriaEmpresa: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                required
+              >
+                <option value="">Selecciona una categoría</option>
+                <option value="Alimentación">🍕 Alimentación</option>
+                <option value="Tecnología">💻 Tecnología</option>
+                <option value="Ropa">👔 Ropa y Moda</option>
+                <option value="Hogar">🏠 Hogar y Decoración</option>
+                <option value="Salud">💊 Salud y Bienestar</option>
+                <option value="Servicios">🛠️ Servicios</option>
+                <option value="Deportes">⚽ Deportes</option>
+                <option value="Libros">📚 Libros y Educación</option>
+                <option value="Artesanías">🎨 Artesanías</option>
+                <option value="Otro">📦 Otro</option>
+              </select>
+            </div>
+
+            {/* Teléfono */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <span className="inline mr-2">📱</span>
+                Teléfono de Contacto *
+              </label>
+              <input
+                type="tel"
+                value={formData.telefono}
+                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="Ej: +57 300 123 4567"
+                required
+              />
+            </div>
+
+            {/* Sitio Web */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <span className="inline mr-2">🌐</span>
+                Sitio Web (Opcional)
+              </label>
+              <input
+                type="url"
+                value={formData.sitioWeb}
+                onChange={(e) => setFormData({ ...formData, sitioWeb: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                placeholder="https://www.tuempresa.com"
+              />
+            </div>
+
+            {/* Redes Sociales */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                <span className="inline mr-2">📱</span>
+                Redes Sociales (Opcional)
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Facebook</label>
+                  <input
+                    type="text"
+                    value={formData.redesSociales.facebook}
+                    onChange={(e) => setFormData({ ...formData, redesSociales: { ...formData.redesSociales, facebook: e.target.value }})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                    placeholder="@tuempresa"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Instagram</label>
+                  <input
+                    type="text"
+                    value={formData.redesSociales.instagram}
+                    onChange={(e) => setFormData({ ...formData, redesSociales: { ...formData.redesSociales, instagram: e.target.value }})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                    placeholder="@tuempresa"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Tipo de Documento */}

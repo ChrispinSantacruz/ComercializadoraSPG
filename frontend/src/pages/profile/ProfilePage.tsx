@@ -356,20 +356,52 @@ const ProfilePage: React.FC = () => {
               <div className="flex-1 w-full">
                 <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between space-y-3 sm:space-y-0">
                   <div className="flex-1 text-center sm:text-left">
-                    <h1 className={`text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold ${user.rol === 'comerciante' ? 'text-gray-900' : 'text-white'} mb-1 sm:mb-2`}>
-                      Mi Perfil
-                    </h1>
-                    <p className={`${user.rol === 'comerciante' ? 'text-gray-600' : 'text-blue-100'} text-xs sm:text-sm md:text-base font-medium`}>
-                      {user.nombre || 'Usuario'} • {user.rol?.charAt(0).toUpperCase() + user.rol?.slice(1) || 'Cliente'}
-                    </p>
+                    {user.rol === 'comerciante' ? (
+                      <>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">
+                          {user.nombreEmpresa || 'Mi Negocio'}
+                        </h1>
+                        <p className="text-gray-600 text-xs sm:text-sm md:text-base mb-2">
+                          {user.descripcionEmpresa || 'Descripción del negocio'}
+                        </p>
+                        <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                          {user.categoriaEmpresa && (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              {user.categoriaEmpresa}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-500 text-xs sm:text-sm mt-2">
+                          Dirigido por: {user.nombre}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2">
+                          Mi Perfil
+                        </h1>
+                        <p className="text-blue-100 text-xs sm:text-sm md:text-base font-medium">
+                          {user.nombre || 'Usuario'} • {user.rol?.charAt(0).toUpperCase() + user.rol?.slice(1) || 'Cliente'}
+                        </p>
+                      </>
+                    )}
                     {user.verificado ? (
                       <span className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800 mt-2 sm:mt-3">
                         ✓ Email verificado
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-yellow-100 text-yellow-800 mt-2 sm:mt-3">
-                        ⚠ Email pendiente de verificar
-                      </span>
+                      <div className="mt-2 sm:mt-3 space-y-2">
+                        <span className="inline-flex items-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium bg-yellow-100 text-yellow-800">
+                          ⚠ Email pendiente de verificar
+                        </span>
+                        <br />
+                        <Link
+                          to={`/verify-email?email=${user.email}`}
+                          className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          📧 Verificar Email
+                        </Link>
+                      </div>
                     )}
                   </div>
                   

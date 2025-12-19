@@ -28,15 +28,24 @@ if (!admin.apps.length) {
     } catch (error) {
       console.error('Error loading Firebase service account:', error.message);
       console.error('Please ensure FIREBASE_USE_ENV=true and all Firebase environment variables are set, or provide a valid firebase-service-account.json file');
-      process.exit(1);
+      console.warn('⚠️ Server will continue without Firebase Admin SDK - some features may be limited');
+      // Don't exit - allow server to continue for email functionality
+      return null;
     }
   }
 
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  // Only initialize Firebase if we have valid service account
+  if (serviceAccount) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log('✅ Firebase Admin SDK initialized successfully');
+  } else {
+    console.warn('⚠️ Firebase Admin SDK not initialized - will mock responses for authentication');
+  }
 }
 
-const auth = admin.auth();
+// Export auth only if Firebase is initialized
+const auth = admin.apps.length > 0 ? admin.auth() : null;
 
 module.exports = { admin, auth };

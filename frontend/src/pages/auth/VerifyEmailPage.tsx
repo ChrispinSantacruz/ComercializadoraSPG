@@ -83,8 +83,17 @@ const VerifyEmailPage: React.FC = () => {
             Verifica tu Email
           </h1>
           <p className="text-gray-600">
-            Ingresa el código de 6 dígitos que enviamos a tu correo
+            {emailFromParams ? (
+              <>Ingresa el código de verificación para completar tu registro</>
+            ) : (
+              <>Verifica tu cuenta ingresando el código de 6 dígitos</>
+            )}
           </p>
+          {email && (
+            <p className="text-sm text-gray-500 mt-2">
+              Enviado a: <strong>{email}</strong>
+            </p>
+          )}
         </div>
 
         {error && (
@@ -154,17 +163,22 @@ const VerifyEmailPage: React.FC = () => {
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg text-center">
           <p className="text-sm text-gray-600 mb-3">
             ¿No recibiste el código?
           </p>
-          <button
-            onClick={handleResendCode}
-            disabled={resendingCode}
-            className="text-blue-600 hover:text-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {resendingCode ? 'Reenviando...' : 'Reenviar código'}
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={handleResendCode}
+              disabled={resendingCode || !email}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {resendingCode ? '📤 Reenviando...' : '📤 Reenviar código'}
+            </button>
+            <p className="text-xs text-gray-500">
+              Revisa tu bandeja de entrada y spam. El código es válido por 15 minutos.
+            </p>
+          </div>
         </div>
 
         <div className="mt-6 text-center">

@@ -64,8 +64,19 @@ export const authService = {
 
   // Reenviar código de verificación
   resendVerificationCode: async (email: string): Promise<void> => {
-    const response = await api.post('/auth/reenviar-codigo', { email });
-    return handleApiResponse<void>(response);
+    try {
+      console.log('📧 Reenviando código de verificación para:', email);
+      const response = await api.post('/auth/reenviar-codigo', { email });
+      console.log('✅ Respuesta exitosa del servidor:', response.status);
+      return handleApiResponse<void>(response);
+    } catch (error: any) {
+      console.error('❌ Error al reenviar código:', error);
+      if (error.response?.status === 404) {
+        console.error('🔍 Endpoint no encontrado - posible problema de deployment');
+        throw new Error('El servicio de verificación no está disponible temporalmente. Inténtalo de nuevo en unos minutos.');
+      }
+      throw error;
+    }
   },
 
   // Reenviar email de verificación (legacy)

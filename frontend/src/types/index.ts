@@ -31,6 +31,14 @@ export interface User {
   };
   rol: 'cliente' | 'comerciante';
   nombreEmpresa?: string;
+  descripcionEmpresa?: string;
+  categoriaEmpresa?: string;
+  sitioWeb?: string;
+  redesSociales?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+  };
   avatar?: string;
   banner?: string;
   verificado: boolean;
