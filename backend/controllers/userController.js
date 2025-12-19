@@ -58,14 +58,30 @@ const actualizarPerfil = async (req, res) => {
       return errorResponse(res, 'Errores de validación', 400, errors.array());
     }
 
-    const camposPermitidos = [
+    let camposPermitidos = [
       'nombre', 'telefono', 'configuracion', 'direccion'
     ];
+
+    // Permitir campos adicionales para comerciantes
+    if (req.usuario.rol === 'comerciante') {
+      camposPermitidos.push(
+        'nombreEmpresa', 
+        'descripcionEmpresa', 
+        'categoriaEmpresa', 
+        'sitioWeb', 
+        'redesSociales',
+        'tipoDocumento',
+        'numeroDocumento'
+      );
+    }
+
+    console.log('🔄 Actualizando perfil para:', req.usuario.rol, 'Campos permitidos:', camposPermitidos);
 
     const actualizaciones = {};
     camposPermitidos.forEach(campo => {
       if (req.body[campo] !== undefined) {
         actualizaciones[campo] = req.body[campo];
+        console.log(`✓ Actualizando ${campo}:`, req.body[campo]);
       }
     });
 

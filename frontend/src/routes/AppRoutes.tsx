@@ -102,6 +102,7 @@ const AppRoutes: React.FC = () => {
             isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />
           } 
         />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
         <Route path="verificar-email" element={<VerifyEmailPage />} />
         <Route path="select-role" element={<SelectRolePage />} />
         <Route path="complete-merchant-profile" element={<CompleteMerchantProfilePage />} />

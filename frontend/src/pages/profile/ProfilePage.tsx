@@ -20,6 +20,16 @@ const ProfilePage: React.FC = () => {
     nombre: user?.nombre || '',
     email: user?.email || '',
     telefono: user?.telefono || '',
+    // Campos de negocio para comerciantes
+    nombreEmpresa: user?.nombreEmpresa || '',
+    descripcionEmpresa: user?.descripcionEmpresa || '',
+    categoriaEmpresa: user?.categoriaEmpresa || '',
+    sitioWeb: user?.sitioWeb || '',
+    redesSociales: {
+      facebook: user?.redesSociales?.facebook || '',
+      instagram: user?.redesSociales?.instagram || '',
+      twitter: user?.redesSociales?.twitter || ''
+    }
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -34,6 +44,16 @@ const ProfilePage: React.FC = () => {
         nombre: user.nombre,
         email: user.email,
         telefono: user.telefono || '',
+        // Campos de negocio para comerciantes
+        nombreEmpresa: user.nombreEmpresa || '',
+        descripcionEmpresa: user.descripcionEmpresa || '',
+        categoriaEmpresa: user.categoriaEmpresa || '',
+        sitioWeb: user.sitioWeb || '',
+        redesSociales: {
+          facebook: user.redesSociales?.facebook || '',
+          instagram: user.redesSociales?.instagram || '',
+          twitter: user.redesSociales?.twitter || ''
+        }
       });
     }
   }, [user]);
@@ -42,11 +62,25 @@ const ProfilePage: React.FC = () => {
     return <LoadingSpinner />;
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
+    // Manejar campos de redes sociales
+    if (name.startsWith('redesSociales.')) {
+      const socialField = name.split('.')[1];
+      setFormData({
+        ...formData,
+        redesSociales: {
+          ...formData.redesSociales,
+          [socialField]: value
+        }
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,11 +92,21 @@ const ProfilePage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validaciones específicas para comerciantes
+    if (user.rol === 'comerciante') {
+      if (!formData.nombreEmpresa || !formData.descripcionEmpresa || !formData.categoriaEmpresa) {
+        setError('Por favor completa todos los campos obligatorios del negocio');
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
+      console.log('📝 Enviando datos de actualización:', formData);
       const updatedUser = await authService.updateProfile(formData);
       updateUser(updatedUser);
       setSuccess('Perfil actualizado correctamente');
@@ -112,6 +156,16 @@ const ProfilePage: React.FC = () => {
       nombre: user?.nombre || '',
       email: user?.email || '',
       telefono: user?.telefono || '',
+      // Campos de negocio para comerciantes
+      nombreEmpresa: user?.nombreEmpresa || '',
+      descripcionEmpresa: user?.descripcionEmpresa || '',
+      categoriaEmpresa: user?.categoriaEmpresa || '',
+      sitioWeb: user?.sitioWeb || '',
+      redesSociales: {
+        facebook: user?.redesSociales?.facebook || '',
+        instagram: user?.redesSociales?.instagram || '',
+        twitter: user?.redesSociales?.twitter || ''
+      }
     });
     setIsEditing(false);
     setError(null);
@@ -514,6 +568,115 @@ const ProfilePage: React.FC = () => {
                     placeholder="Ej: 300 123 4567"
                   />
                 </div>
+
+                {/* Campos de negocio para comerciantes */}
+                {user.rol === 'comerciante' && (
+                  <>
+                    <div className="md:col-span-2 border-t pt-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        🏢 Información del Negocio
+                      </h3>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nombre de la Empresa *
+                      </label>
+                      <input
+                        type="text"
+                        name="nombreEmpresa"
+                        value={formData.nombreEmpresa}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nombre de tu empresa"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Categoría *
+                      </label>
+                      <select
+                        name="categoriaEmpresa"
+                        value={formData.categoriaEmpresa}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="">Selecciona una categoría</option>
+                        <option value="Alimentación">🍕 Alimentación</option>
+                        <option value="Tecnología">💻 Tecnología</option>
+                        <option value="Ropa">👔 Ropa y Moda</option>
+                        <option value="Hogar">🏠 Hogar y Decoración</option>
+                        <option value="Salud">💊 Salud y Bienestar</option>
+                        <option value="Servicios">🛠️ Servicios</option>
+                        <option value="Deportes">⚽ Deportes</option>
+                        <option value="Libros">📚 Libros y Educación</option>
+                        <option value="Artesanías">🎨 Artesanías</option>
+                        <option value="Otro">📦 Otro</option>
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Descripción del Negocio *
+                      </label>
+                      <textarea
+                        name="descripcionEmpresa"
+                        value={formData.descripcionEmpresa}
+                        onChange={handleInputChange}
+                        rows={4}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Describe tu negocio y los productos que vendes..."
+                        maxLength={500}
+                        required
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        {formData.descripcionEmpresa.length}/500 caracteres
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Sitio Web
+                      </label>
+                      <input
+                        type="url"
+                        name="sitioWeb"
+                        value={formData.sitioWeb}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://www.tuempresa.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Redes Sociales
+                      </label>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          name="redesSociales.facebook"
+                          value={formData.redesSociales.facebook}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          placeholder="Facebook: @tuempresa"
+                        />
+                        <input
+                          type="text"
+                          name="redesSociales.instagram"
+                          value={formData.redesSociales.instagram}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          placeholder="Instagram: @tuempresa"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
               </div>
 
               <div className="flex space-x-4">
@@ -567,6 +730,55 @@ const ProfilePage: React.FC = () => {
                   {user.verificado ? 'Verificado' : 'Pendiente de verificación'}
                 </p>
               </div>
+
+              {/* Información del negocio para comerciantes */}
+              {user.rol === 'comerciante' && (
+                <>
+                  <div className="md:col-span-2 border-t pt-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                      🏢 Información del Negocio
+                    </h3>
+                  </div>
+                  
+                  <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
+                    <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-1 sm:mb-2 uppercase tracking-wide">Nombre de la Empresa</h3>
+                    <p className="text-gray-900 text-sm sm:text-base font-medium">{user.nombreEmpresa || 'No especificado'}</p>
+                  </div>
+
+                  <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
+                    <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-1 sm:mb-2 uppercase tracking-wide">Categoría</h3>
+                    <p className="text-gray-900 text-sm sm:text-base font-medium">{user.categoriaEmpresa || 'No especificado'}</p>
+                  </div>
+
+                  <div className="md:col-span-2 bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
+                    <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-1 sm:mb-2 uppercase tracking-wide">Descripción del Negocio</h3>
+                    <p className="text-gray-900 text-sm sm:text-base">{user.descripcionEmpresa || 'No especificado'}</p>
+                  </div>
+
+                  {user.sitioWeb && (
+                    <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
+                      <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-1 sm:mb-2 uppercase tracking-wide">Sitio Web</h3>
+                      <a href={user.sitioWeb} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm sm:text-base hover:underline">
+                        {user.sitioWeb}
+                      </a>
+                    </div>
+                  )}
+
+                  {(user.redesSociales?.facebook || user.redesSociales?.instagram) && (
+                    <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
+                      <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">Redes Sociales</h3>
+                      <div className="space-y-1">
+                        {user.redesSociales?.facebook && (
+                          <p className="text-gray-900 text-sm">Facebook: {user.redesSociales.facebook}</p>
+                        )}
+                        {user.redesSociales?.instagram && (
+                          <p className="text-gray-900 text-sm">Instagram: {user.redesSociales.instagram}</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>
