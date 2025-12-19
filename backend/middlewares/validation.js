@@ -31,7 +31,10 @@ const validarRegistroUsuario = [
   body('email')
     .isEmail()
     .withMessage('Debe ser un email válido')
-    .normalizeEmail(),
+    .customSanitizer(value => {
+      // Solo hacer lowercase pero mantener el formato original (con puntos)
+      return value ? value.toLowerCase().trim() : value;
+    }),
     
   body('password')
     .isLength({ min: 6 })
@@ -59,7 +62,10 @@ const validarLoginUsuario = [
   body('email')
     .isEmail()
     .withMessage('Debe ser un email válido')
-    .normalizeEmail(),
+    .customSanitizer(value => {
+      // Solo hacer lowercase pero mantener el formato original (con puntos)
+      return value ? value.toLowerCase().trim() : value;
+    }),
     
   body('password')
     .notEmpty()
