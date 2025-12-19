@@ -1,4 +1,5 @@
 import api, { handleApiResponse } from './api';
+import axios from 'axios';
 import { User, AuthResponse, LoginCredentials, RegisterData } from '../types';
 
 export const authService = {
@@ -66,11 +67,22 @@ export const authService = {
   resendVerificationCode: async (email: string): Promise<void> => {
     try {
       console.log('📧 Reenviando código de verificación para:', email);
-      const response = await api.post('/auth/reenviar-codigo', { email });
+      
+      // Crear instancia con timeout extendido para operaciones de email
+      const emailApi = axios.create({
+        baseURL: api.defaults.baseURL,
+        timeout: 30000, // 30 segundos para operaciones de email
+        headers: api.defaults.headers
+      });
+
+      const response = await emailApi.post('/auth/reenviar-codigo', { email });
       console.log('✅ Respuesta exitosa del servidor:', response.status);
       return handleApiResponse<void>(response);
     } catch (error: any) {
       console.error('❌ Error al reenviar código:', error);
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        throw new Error('El envío del código está tomando más tiempo de lo esperado. Por favor, espera unos minutos antes de intentar nuevamente.');
+      }
       if (error.response?.status === 404) {
         console.error('🔍 Endpoint no encontrado - posible problema de deployment');
         throw new Error('El servicio de verificación no está disponible temporalmente. Inténtalo de nuevo en unos minutos.');

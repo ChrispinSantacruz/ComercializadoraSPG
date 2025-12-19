@@ -64,9 +64,13 @@ const VerifyEmailPage: React.FC = () => {
 
     try {
       await authService.resendVerificationCode(email);
-      setSuccess('Código reenviado exitosamente. Revisa tu email.');
+      setSuccess('✅ Código generado exitosamente. Si no recibes el email en 2-3 minutos, revisa tu carpeta de spam o inténtalo nuevamente.');
     } catch (err: any) {
-      setError(err.message || 'Error al reenviar el código');
+      if (err.message?.includes('timeout')) {
+        setError('⏰ El envío está tomando más tiempo del esperado. El código fue generado, revisa tu email en unos minutos.');
+      } else {
+        setError(err.message || 'Error al reenviar el código');
+      }
     } finally {
       setResendingCode(false);
     }

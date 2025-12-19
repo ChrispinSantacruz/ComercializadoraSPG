@@ -278,23 +278,41 @@ const reenviarCodigoVerificacion = async (req, res, next) => {
     usuario.codigoExpiracion = codigoExpiracion;
     await usuario.save();
 
-    // Enviar email con nuevo código
+    // Enviar email con nuevo código (de forma asíncrona para evitar bloqueos)
     console.log('📧 Intentando enviar email de verificación a:', email);
+    let mensajeRespuesta = 'Código de verificación generado.';
+    
     try {
-      const resultadoEmail = await enviarEmailBienvenida(email, usuario.nombre, codigoVerificacion);
+      // Intentar enviar email con timeout
+      const resultadoEmail = await Promise.race([
+        enviarEmailBienvenida(email, usuario.nombre, codigoVerificacion),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout al procesar envío de email')), 20000)
+        )
+      ]);
+      
       console.log('✅ Email enviado exitosamente:', resultadoEmail);
       
       if (resultadoEmail.warning) {
         console.log('⚠️ Email enviado con advertencia:', resultadoEmail.warning);
+        mensajeRespuesta = 'Código generado. El email puede tardar unos minutos en llegar.';
+      } else if (resultadoEmail.exito) {
+        mensajeRespuesta = 'Código de verificación enviado. Revisa tu email.';
       }
     } catch (emailError) {
       console.error('❌ Error enviando email:', emailError.message);
       console.error('Stack:', emailError.stack);
-      return errorResponse(res, 'Error al enviar el email de verificación: ' + emailError.message, 500);
+      
+      // No fallar la respuesta, solo informar que el email puede tardar
+      mensajeRespuesta = `Código generado. Si no recibes el email en unos minutos, inténtalo de nuevo. Error: ${emailError.message}`;
     }
 
     console.log('✅ Proceso completado - código reenviado');
-    successResponse(res, 'Código de verificación reenviado. Revisa tu email.');
+    successResponse(res, mensajeRespuesta, { 
+      codigoGenerado: true, 
+      email: email,
+      validoPor: '15 minutos' 
+    });
 
   } catch (error) {
     next(error);

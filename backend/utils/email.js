@@ -49,11 +49,14 @@ const crearTransporter = () => {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
     },
-    // Opciones adicionales para mejor compatibilidad
+    // Opciones adicionales para mejor compatibilidad y timeouts
+    connectionTimeout: 10000, // 10 segundos para conectar
+    greetingTimeout: 5000,    // 5 segundos para el saludo inicial
+    socketTimeout: 15000,     // 15 segundos para operaciones de socket
     tls: {
       rejectUnauthorized: process.env.NODE_ENV === 'production'
     },
-    logger: process.env.NODE_ENV === 'development', // Log de debug en desarrollo
+    logger: process.env.NODE_ENV === 'development',
     debug: process.env.NODE_ENV === 'development'
   });
 };
@@ -144,15 +147,20 @@ const enviarEmail = async (para, tipo, datos) => {
 
     const transporter = crearTransporter();
     
-    // Verificar conexión con timeout
+    // Verificar conexión con timeout más corto
     console.log('🔄 Verificando conexión SMTP...');
-    await Promise.race([
-      transporter.verify(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout al verificar conexión SMTP')), 10000)
-      )
-    ]);
-    console.log('✅ Conexión SMTP verificada');
+    try {
+      await Promise.race([
+        transporter.verify(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout al verificar conexión SMTP')), 5000)
+        )
+      ]);
+      console.log('✅ Conexión SMTP verificada');
+    } catch (error) {
+      console.warn('⚠️ No se pudo verificar SMTP, continuando sin verificación:', error.message);
+      // Continuar sin verificación - el envío fallará gracefully si hay problemas
+    }
     
     const plantilla = plantillas[tipo];
     if (!plantilla) {
@@ -168,7 +176,14 @@ const enviarEmail = async (para, tipo, datos) => {
       html: html
     };
     
-    const resultado = await transporter.sendMail(mailOptions);
+    // Enviar email con timeout
+    console.log('📤 Enviando email...');
+    const resultado = await Promise.race([
+      transporter.sendMail(mailOptions),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout al enviar email - el servidor de email no responde')), 15000)
+      )
+    ]);
     console.log('✅ Email enviado exitosamente:', resultado.messageId);
     
     return {
