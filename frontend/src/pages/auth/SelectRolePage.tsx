@@ -58,10 +58,10 @@ const SelectRolePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#0d8e76]/10 via-white to-[#1c3a35]/5 flex items-center justify-center px-4 py-8">
       <div className="max-w-4xl w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#0d8e76] text-white rounded-full mb-4">
             {usuario.avatar ? (
               <img src={usuario.avatar} alt={usuario.nombre} className="w-full h-full rounded-full object-cover" />
             ) : (
@@ -82,16 +82,16 @@ const SelectRolePage: React.FC = () => {
             onClick={() => setSelectedRol('cliente')}
             className={`relative p-8 rounded-2xl border-2 transition-all duration-300 text-left ${
               selectedRol === 'cliente'
-                ? 'border-blue-600 bg-blue-50 shadow-lg scale-105'
-                : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'
+                ? 'border-[#0d8e76] bg-[#0d8e76]/5 shadow-lg scale-105'
+                : 'border-gray-200 bg-white hover:border-[#0d8e76] hover:shadow-md'
             }`}
           >
             <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 text-blue-600">
+              <div className="flex items-center justify-center w-14 h-14 rounded-full bg-[#0d8e76]/10 text-[#0d8e76]">
                 <span className="text-3xl">🛍️</span>
               </div>
               {selectedRol === 'cliente' && (
-                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white">
+                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#0d8e76] text-white">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
                   </svg>
@@ -163,7 +163,7 @@ const SelectRolePage: React.FC = () => {
         <button
           onClick={handleContinue}
           disabled={!selectedRol}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl"
+          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#0d8e76] to-[#1c3a35] text-white py-4 px-6 rounded-xl font-semibold hover:from-[#0b7a64] hover:to-[#17312d] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl"
         >
           Continuar
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

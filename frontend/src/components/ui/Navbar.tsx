@@ -12,6 +12,7 @@ const Navbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCategories, setShowCategories] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -48,25 +49,25 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      {/* Barra superior negra - Oculta en mobile */}
-      <div className="hidden md:block bg-black text-white py-2">
+      {/* Barra superior verde oscuro - Oculta en mobile */}
+      <div className="hidden md:block bg-[#1c3a35] text-white py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center text-xs lg:text-sm">
             {/* Lado izquierdo */}
             <div className="flex items-center space-x-3 lg:space-x-6">
               <div className="flex items-center space-x-1.5 lg:space-x-2">
-                <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-[#f2902f]" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                   <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2h.5a1.5 1.5 0 010 3h-1.5v7a1 1 0 01-1 1H5a1 1 0 01-1-1V9H2.5a1.5 1.5 0 010-3H3V4z" />
                 </svg>
-                <span className="text-green-400 font-medium">⚡ Envío eficaz</span>
+                <span className="text-[#f2902f] font-medium">⚡ Envío eficaz</span>
               </div>
               
               <div className="flex items-center space-x-1.5 lg:space-x-2">
-                <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-[#0d8e76]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                 </svg>
-                <span className="text-yellow-400 font-medium">🔄 Devolución inmediata</span>
+                <span className="text-[#0d8e76] font-medium">🔄 Devolución inmediata</span>
               </div>
             </div>
 
@@ -83,8 +84,8 @@ const Navbar: React.FC = () => {
         </div>
       </div>
 
-  {/* Barra principal azul */}
-  <header className="bg-blue-600 text-white shadow-lg sticky top-0 z-50">
+  {/* Barra principal verde turquesa */}
+  <header className="bg-[#0d8e76] text-white shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-20">
             
@@ -99,7 +100,7 @@ const Navbar: React.FC = () => {
                 />
                 <div className="hidden sm:flex flex-col justify-center">
                   <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white leading-none">AndinoExpress</h1>
-                  <p className="text-orange-200 text-[10px] sm:text-xs md:text-sm leading-tight mt-0.5">Tu plataforma rápida y confiable</p>
+                  <p className="text-[#f2902f] text-[10px] sm:text-xs md:text-sm leading-tight mt-0.5">Tu plataforma rápida y confiable</p>
                 </div>
               </Link>
 
@@ -255,9 +256,16 @@ const Navbar: React.FC = () => {
 
               {/* Botón de menú móvil */}
               <div className="lg:hidden">
-                <button className="text-white hover:text-orange-200 p-1.5 sm:p-2 rounded-lg hover:bg-white/10 transition-all duration-200">
+                <button 
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  className="text-white hover:text-[#f2902f] p-1.5 sm:p-2 rounded-lg hover:bg-white/10 transition-all duration-200"
+                >
                   <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    {showMobileMenu ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    )}
                   </svg>
                 </button>
               </div>
@@ -265,6 +273,134 @@ const Navbar: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Menú móvil desplegable */}
+      {showMobileMenu && (
+        <div className="lg:hidden bg-[#1c3a35] shadow-xl border-t border-[#0d8e76]/30">
+          <div className="px-4 py-6 space-y-4">
+            {/* Enlaces principales */}
+            <div className="space-y-3">
+              <Link 
+                to="/" 
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center space-x-3 text-white hover:text-[#f2902f] transition duration-300 py-2"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                </svg>
+                <span className="font-medium">Inicio</span>
+              </Link>
+              
+              <Link 
+                to="/productos" 
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center space-x-3 text-white hover:text-[#f2902f] transition duration-300 py-2"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">Productos</span>
+              </Link>
+
+              <Link 
+                to="/sobre-nosotros" 
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center space-x-3 text-white hover:text-[#f2902f] transition duration-300 py-2"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">Sobre Nosotros</span>
+              </Link>
+            </div>
+
+            {/* Categorías móviles */}
+            <div className="border-t border-[#0d8e76]/30 pt-4">
+              <h3 className="text-[#f2902f] font-semibold mb-3 text-sm uppercase tracking-wide">Categorías</h3>
+              <div className="space-y-2">
+                <Link to="/productos?categoria=electronica" onClick={() => setShowMobileMenu(false)} className="block text-gray-300 hover:text-[#f2902f] transition duration-200 py-1">
+                  🖥️ Electrónica
+                </Link>
+                <Link to="/productos?categoria=ropa" onClick={() => setShowMobileMenu(false)} className="block text-gray-300 hover:text-[#f2902f] transition duration-200 py-1">
+                  👕 Ropa y Accesorios
+                </Link>
+                <Link to="/productos?categoria=hogar" onClick={() => setShowMobileMenu(false)} className="block text-gray-300 hover:text-[#f2902f] transition duration-200 py-1">
+                  🏠 Hogar y Jardín
+                </Link>
+                <Link to="/productos?categoria=deportes" onClick={() => setShowMobileMenu(false)} className="block text-gray-300 hover:text-[#f2902f] transition duration-200 py-1">
+                  ⚽ Deportes
+                </Link>
+                <Link to="/productos?categoria=belleza" onClick={() => setShowMobileMenu(false)} className="block text-gray-300 hover:text-[#f2902f] transition duration-200 py-1">
+                  💄 Belleza y Cuidado
+                </Link>
+              </div>
+            </div>
+
+            {/* Sección de usuario móvil */}
+            <div className="border-t border-[#0d8e76]/30 pt-4 space-y-3">
+              {isAuthenticated ? (
+                <>
+                  <Link 
+                    to="/perfil" 
+                    onClick={() => setShowMobileMenu(false)}
+                    className="flex items-center space-x-3 text-white hover:text-[#f2902f] transition duration-300 py-2"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">Mi Cuenta</span>
+                  </Link>
+
+                  <Link 
+                    to="/carrito" 
+                    onClick={() => setShowMobileMenu(false)}
+                    className="flex items-center space-x-3 text-white hover:text-[#f2902f] transition duration-300 py-2"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                    </svg>
+                    <span className="font-medium">Carrito ({getItemCount()})</span>
+                  </Link>
+
+                  <button 
+                    onClick={() => {
+                      handleLogout();
+                      setShowMobileMenu(false);
+                    }}
+                    className="flex items-center space-x-3 text-white hover:text-[#f2902f] transition duration-300 py-2 w-full text-left"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">Cerrar Sesión</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    to="/login" 
+                    onClick={() => setShowMobileMenu(false)}
+                    className="flex items-center space-x-3 text-white hover:text-[#f2902f] transition duration-300 py-2"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">Iniciar Sesión</span>
+                  </Link>
+
+                  <Link 
+                    to="/register" 
+                    onClick={() => setShowMobileMenu(false)}
+                    className="block w-full bg-[#f2902f] text-white px-4 py-3 rounded-lg font-medium hover:bg-[#e07d1f] transition-all duration-300 text-center"
+                  >
+                    Registrarse
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Barra de búsqueda desplegable */}
       {showSearch && (

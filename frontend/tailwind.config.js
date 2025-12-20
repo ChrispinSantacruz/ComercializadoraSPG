@@ -5,31 +5,51 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'montserrat': ['Montserrat', 'sans-serif'],
+        'inter': ['Inter', 'sans-serif'],
+      },
       colors: {
-        // Paleta de colores personalizada para Comercializadora SPG
+        // Nueva paleta de colores para Comercializadora SPG
+        'verde-oscuro': '#1c3a35',
+        'naranja': '#f2902f',
+        'verde-turquesa': '#0d8e76',
+        
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#1D4ED8', // Color primario principal
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#f0f9f7',
+          100: '#dcf2ec',
+          200: '#b9e6da',
+          300: '#87d4c1',
+          400: '#54bda5',
+          500: '#0d8e76', // Verde turquesa principal
+          600: '#0b7a64',
+          700: '#0a6453',
+          800: '#095043',
+          900: '#083f36',
         },
         secondary: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#10B981', // Color secundario principal
-          600: '#059669',
-          700: '#047857',
-          800: '#065f46',
-          900: '#064e3b',
+          50: '#fef6ed',
+          100: '#fdecd5',
+          200: '#fad6aa',
+          300: '#f7ba74',
+          400: '#f2902f', // Naranja principal
+          500: '#f27c29',
+          600: '#e35a1f',
+          700: '#bc451c',
+          800: '#953a1e',
+          900: '#78321c',
+        },
+        accent: {
+          50: '#f4f8f7',
+          100: '#e4efed',
+          200: '#c9dfdb',
+          300: '#9cc5bd',
+          400: '#6aa49a',
+          500: '#1c3a35', // Verde oscuro principal
+          600: '#17312d',
+          700: '#142824',
+          800: '#12201e',
+          900: '#101b19',
         },
         success: {
           50: '#f0fdf4',

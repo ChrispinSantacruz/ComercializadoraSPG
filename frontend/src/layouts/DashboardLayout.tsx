@@ -67,7 +67,7 @@ const DashboardLayout: React.FC = () => {
               <span className="text-sm text-gray-600">
                 Hola, {user?.nombre}
               </span>
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full capitalize">
+              <span className="text-xs bg-[#0d8e76]/10 text-[#0d8e76] px-2 py-1 rounded-full capitalize">
                 {user?.rol}
               </span>
               <button 
@@ -90,7 +90,7 @@ const DashboardLayout: React.FC = () => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className="text-gray-700 hover:bg-blue-50 hover:text-blue-600 group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
+                  className="text-gray-700 hover:bg-[#0d8e76]/10 hover:text-[#0d8e76] group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors"
                 >
                   <span className="mr-3 text-lg">{item.icon}</span>
                   {item.name}

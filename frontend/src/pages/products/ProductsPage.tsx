@@ -182,7 +182,7 @@ const ProductsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header mejorado */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-[#0d8e76] to-[#1c3a35] text-white shadow-lg">
         <div className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center">
             <div>
@@ -221,7 +221,7 @@ const ProductsPage: React.FC = () => {
           <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100 space-y-6 lg:sticky lg:top-24 max-h-[calc(100vh-120px)] overflow-y-auto">
             <div className="flex justify-between items-center pb-4 border-b border-gray-100">
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-[#f2902f] to-[#0d8e76] rounded-lg flex items-center justify-center mr-3">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
                   </svg>
@@ -230,7 +230,7 @@ const ProductsPage: React.FC = () => {
               </div>
               <button
                 onClick={clearFilters}
-                className="text-sm font-medium text-blue-600 hover:text-blue-800 px-3 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                className="text-sm font-medium text-[#0d8e76] hover:text-[#1c3a35] px-3 py-1 rounded-lg hover:bg-[#0d8e76]/10 transition-colors"
               >
                 Limpiar todo
               </button>
@@ -344,7 +344,7 @@ const ProductsPage: React.FC = () => {
                     <div className="p-6">
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                          <span className="text-sm font-medium text-[#0d8e76] bg-[#0d8e76]/10 px-3 py-1 rounded-full">
                             {getCategoryName(typeof product.categoria === 'string' ? product.categoria : product.categoria?._id || '')}
                           </span>
                           {product.estadisticas && (
@@ -358,7 +358,7 @@ const ProductsPage: React.FC = () => {
                             </div>
                           )}
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors leading-tight">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#f2902f] transition-colors leading-tight">
                           {product.nombre}
                         </h3>
                         <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">

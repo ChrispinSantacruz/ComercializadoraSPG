@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -14,6 +14,20 @@ html {
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Tipografías principales */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
+.font-montserrat {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.font-inter {
+  font-family: 'Inter', sans-serif;
+}
+
 body {
   background-color: #f9fafb;
   color: #111827;
@@ -23,7 +37,7 @@ body {
 
 /* Botones básicos */
 .btn-primary {
-  background-color: #2563eb;
+  background-color: #f2902f;
   color: white;
   font-weight: 500;
   padding: 8px 16px;
@@ -34,12 +48,12 @@ body {
 }
 
 .btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: #e07d1f;
 }
 
 .btn-secondary {
-  background-color: #f3f4f6;
-  color: #111827;
+  background-color: #0d8e76;
+  color: white;
   font-weight: 500;
   padding: 8px 16px;
   border-radius: 8px;
@@ -49,7 +63,7 @@ body {
 }
 
 .btn-secondary:hover {
-  background-color: #e5e7eb;
+  background-color: #0b7a64;
 }
 
 /* Cards básicas */
@@ -212,3 +226,37 @@ body {
 .notification-pulse {
   animation: notification-pulse 2s ease-in-out infinite;
 } 
+
+/* Utilidades de colores para la nueva paleta */
+.bg-verde-oscuro { background-color: #1c3a35; }
+.bg-naranja { background-color: #f2902f; }
+.bg-verde-turquesa { background-color: #0d8e76; }
+
+.text-verde-oscuro { color: #1c3a35; }
+.text-naranja { color: #f2902f; }
+.text-verde-turquesa { color: #0d8e76; }
+
+.border-verde-oscuro { border-color: #1c3a35; }
+.border-naranja { border-color: #f2902f; }
+.border-verde-turquesa { border-color: #0d8e76; }
+
+.hover\:bg-verde-oscuro:hover { background-color: #1c3a35; }
+.hover\:bg-naranja:hover { background-color: #f2902f; }
+.hover\:bg-verde-turquesa:hover { background-color: #0d8e76; }
+
+.hover\:text-verde-oscuro:hover { color: #1c3a35; }
+.hover\:text-naranja:hover { color: #f2902f; }
+.hover\:text-verde-turquesa:hover { color: #0d8e76; }
+
+/* Gradientes con los nuevos colores */
+.bg-gradient-verde {
+  background: linear-gradient(135deg, #0d8e76 0%, #1c3a35 100%);
+}
+
+.bg-gradient-naranja {
+  background: linear-gradient(135deg, #f2902f 0%, #e07d1f 100%);
+}
+
+.bg-gradient-turquesa {
+  background: linear-gradient(135deg, #0d8e76 0%, #0b7a64 100%);
+}

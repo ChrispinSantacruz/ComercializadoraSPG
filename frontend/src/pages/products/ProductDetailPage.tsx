@@ -160,7 +160,7 @@ const ProductDetailPage: React.FC = () => {
       {/* Breadcrumb */}
       <div className="mb-6">
         <nav className="text-sm text-gray-500">
-          <button onClick={() => navigate('/productos')} className="hover:text-blue-600">
+          <button onClick={() => navigate('/productos')} className="hover:text-[#f2902f]">
             Productos
           </button>
           <span className="mx-2">&gt;</span>
@@ -190,7 +190,7 @@ const ProductDetailPage: React.FC = () => {
                   key={index}
                   onClick={() => setSelectedImage(index)}
                   className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                    selectedImage === index ? 'border-blue-500' : 'border-gray-200'
+                    selectedImage === index ? 'border-[#0d8e76]' : 'border-gray-200'
                   }`}
                 >
                   <img
@@ -270,7 +270,7 @@ const ProductDetailPage: React.FC = () => {
                 <button
                   onClick={handleAddToCart}
                   disabled={addingToCart}
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium"
+                  className="flex-1 bg-[#f2902f] text-white px-6 py-3 rounded-lg hover:bg-[#e07d1f] disabled:opacity-50 font-medium"
                 >
                   {addingToCart ? 'Agregando...' : 'Agregar al Carrito'}
                 </button>

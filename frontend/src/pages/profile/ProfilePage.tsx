@@ -257,14 +257,14 @@ const ProfilePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link
               to="/merchant/products"
-              className="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg border border-blue-200 transition-colors group"
+              className="bg-[#0d8e76]/10 hover:bg-[#0d8e76]/20 p-4 rounded-lg border border-[#0d8e76]/30 transition-colors group"
             >
               <div className="flex items-center space-x-3">
-                <div className="bg-blue-600 p-2 rounded-lg">
+                <div className="bg-[#0d8e76] p-2 rounded-lg">
                   <span className="text-white text-xl">🛍️</span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900 group-hover:text-blue-600">Gestionar Productos</h4>
+                  <h4 className="font-medium text-gray-900 group-hover:text-[#f2902f]">Gestionar Productos</h4>
                   <p className="text-sm text-gray-600">Agregar, editar y administrar tus productos</p>
                 </div>
               </div>
@@ -287,10 +287,10 @@ const ProfilePage: React.FC = () => {
 
             <Link
               to="/merchant/analytics"
-              className="bg-purple-50 hover:bg-purple-100 p-4 rounded-lg border border-purple-200 transition-colors group"
+              className="bg-[#f2902f]/10 hover:bg-[#f2902f]/20 p-4 rounded-lg border border-[#f2902f]/30 transition-colors group"
             >
               <div className="flex items-center space-x-3">
-                <div className="bg-purple-600 p-2 rounded-lg">
+                <div className="bg-[#f2902f] p-2 rounded-lg">
                   <span className="text-white text-xl">📈</span>
                 </div>
                 <div>
@@ -311,14 +311,14 @@ const ProfilePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link
               to="/orders"
-              className="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg border border-blue-200 transition-colors group"
+              className="bg-[#0d8e76]/10 hover:bg-[#0d8e76]/20 p-4 rounded-lg border border-[#0d8e76]/30 transition-colors group"
             >
               <div className="flex items-center space-x-3">
-                <div className="bg-blue-600 p-2 rounded-lg">
+                <div className="bg-[#0d8e76] p-2 rounded-lg">
                   <span className="text-white text-xl">📦</span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900 group-hover:text-blue-600">Mis Pedidos</h4>
+                  <h4 className="font-medium text-gray-900 group-hover:text-[#f2902f]">Mis Pedidos</h4>
                   <p className="text-sm text-gray-600">Ver el estado de tus compras</p>
                 </div>
               </div>
@@ -353,7 +353,7 @@ const ProfilePage: React.FC = () => {
         <div className="relative">
           {/* Banner para comerciantes */}
           {user.rol === 'comerciante' && (
-            <div className="relative h-40 sm:h-52 md:h-56 lg:h-64 bg-gradient-to-r from-blue-600 to-blue-800 overflow-hidden">
+            <div className="relative h-40 sm:h-52 md:h-56 lg:h-64 bg-gradient-to-r from-[#0d8e76] to-[#1c3a35] overflow-hidden">
               {user.banner ? (
                 <img 
                   src={user.banner} 
@@ -366,7 +366,7 @@ const ProfilePage: React.FC = () => {
                 </div>
               )}
               <div className="absolute bottom-3 sm:bottom-4 md:bottom-5 right-3 sm:right-4 md:right-5">
-                <label className="bg-white/90 hover:bg-white text-blue-600 px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 rounded-lg cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base font-medium">
+                <label className="bg-white/90 hover:bg-white text-[#f2902f] px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2.5 rounded-lg cursor-pointer transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm md:text-base font-medium">
                   {uploadingBanner ? '⏳ Subiendo...' : '📸 Cambiar Banner'}
                   <input
                     type="file"
@@ -381,7 +381,7 @@ const ProfilePage: React.FC = () => {
           )}
           
           {/* Header del perfil */}
-          <div className={`${user.rol === 'comerciante' ? 'bg-white' : 'bg-gradient-to-r from-blue-600 to-blue-800'} px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8 md:py-10`}>
+          <div className={`${user.rol === 'comerciante' ? 'bg-white' : 'bg-gradient-to-r from-[#0d8e76] to-[#1c3a35]'} px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8 md:py-10`}>
             <div className="flex flex-col sm:flex-row items-center sm:items-start sm:space-x-4 md:space-x-6 lg:space-x-8 space-y-4 sm:space-y-0">
               <div className="relative flex-shrink-0">
                 <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden border-4 border-white shadow-xl">
@@ -392,10 +392,10 @@ const ProfilePage: React.FC = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-blue-100"></div>
+                    <div className="w-full h-full bg-gradient-to-br from-[#0d8e76]/20 to-[#1c3a35]/10"></div>
                   )}
                 </div>
-                <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 sm:p-2.5 md:p-3 rounded-full cursor-pointer hover:bg-blue-700 hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl">
+                <label className="absolute bottom-0 right-0 bg-[#f2902f] text-white p-2 sm:p-2.5 md:p-3 rounded-full cursor-pointer hover:bg-[#e07d1f] hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl">
                   {uploadingAvatar ? '⏳' : '📷'}
                   <input
                     type="file"
@@ -420,7 +420,7 @@ const ProfilePage: React.FC = () => {
                         </p>
                         <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                           {user.categoriaEmpresa && (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#0d8e76]/20 text-[#0d8e76]">
                               {user.categoriaEmpresa}
                             </span>
                           )}
@@ -434,7 +434,7 @@ const ProfilePage: React.FC = () => {
                         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2">
                           Mi Perfil
                         </h1>
-                        <p className="text-blue-100 text-xs sm:text-sm md:text-base font-medium">
+                        <p className="text-green-100 text-xs sm:text-sm md:text-base font-medium">
                           {user.nombre || 'Usuario'} • {user.rol?.charAt(0).toUpperCase() + user.rol?.slice(1) || 'Cliente'}
                         </p>
                       </>
@@ -465,7 +465,7 @@ const ProfilePage: React.FC = () => {
                     className={`sm:ml-4 p-2 sm:p-2.5 md:p-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg ${
                       user.rol === 'comerciante' 
                         ? 'bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 hover:border-gray-400' 
-                        : 'bg-blue-700 hover:bg-blue-800 text-white'
+                        : 'bg-[#0d8e76] hover:bg-[#0b7a64] text-white'
                     } ${refreshing ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
                     title="Actualizar perfil"
                   >
@@ -510,7 +510,7 @@ const ProfilePage: React.FC = () => {
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base font-medium"
+                  className="bg-[#0d8e76] text-white px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg hover:bg-[#0b7a64] transition-all duration-200 shadow-md hover:shadow-lg text-sm sm:text-base font-medium"
                 >
                   ✏️ Editar Perfil
                 </button>
@@ -682,7 +682,7 @@ const ProfilePage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="bg-[#0d8e76] text-white px-6 py-2 rounded-lg hover:bg-[#0b7a64] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
@@ -739,25 +739,25 @@ const ProfilePage: React.FC = () => {
                     </h3>
                   </div>
                   
-                  <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
-                    <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-1 sm:mb-2 uppercase tracking-wide">Nombre de la Empresa</h3>
+                  <div className="bg-[#0d8e76]/10 p-3 sm:p-4 rounded-lg border border-[#0d8e76]/20">
+                    <h3 className="text-xs sm:text-sm font-semibold text-[#0d8e76] mb-1 sm:mb-2 uppercase tracking-wide">Nombre de la Empresa</h3>
                     <p className="text-gray-900 text-sm sm:text-base font-medium">{user.nombreEmpresa || 'No especificado'}</p>
                   </div>
 
-                  <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
-                    <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-1 sm:mb-2 uppercase tracking-wide">Categoría</h3>
+                  <div className="bg-[#0d8e76]/10 p-3 sm:p-4 rounded-lg border border-[#0d8e76]/20">
+                    <h3 className="text-xs sm:text-sm font-semibold text-[#0d8e76] mb-1 sm:mb-2 uppercase tracking-wide">Categoría</h3>
                     <p className="text-gray-900 text-sm sm:text-base font-medium">{user.categoriaEmpresa || 'No especificado'}</p>
                   </div>
 
-                  <div className="md:col-span-2 bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
-                    <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-1 sm:mb-2 uppercase tracking-wide">Descripción del Negocio</h3>
+                  <div className="md:col-span-2 bg-[#0d8e76]/10 p-3 sm:p-4 rounded-lg border border-[#0d8e76]/20">
+                    <h3 className="text-xs sm:text-sm font-semibold text-[#0d8e76] mb-1 sm:mb-2 uppercase tracking-wide">Descripción del Negocio</h3>
                     <p className="text-gray-900 text-sm sm:text-base">{user.descripcionEmpresa || 'No especificado'}</p>
                   </div>
 
                   {user.sitioWeb && (
-                    <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
-                      <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-1 sm:mb-2 uppercase tracking-wide">Sitio Web</h3>
-                      <a href={user.sitioWeb} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm sm:text-base hover:underline">
+                    <div className="bg-[#0d8e76]/10 p-3 sm:p-4 rounded-lg border border-[#0d8e76]/20">
+                      <h3 className="text-xs sm:text-sm font-semibold text-[#0d8e76] mb-1 sm:mb-2 uppercase tracking-wide">Sitio Web</h3>
+                      <a href={user.sitioWeb} target="_blank" rel="noopener noreferrer" className="text-[#0d8e76] text-sm sm:text-base hover:underline">
                         {user.sitioWeb}
                       </a>
                     </div>
@@ -765,7 +765,7 @@ const ProfilePage: React.FC = () => {
 
                   {(user.redesSociales?.facebook || user.redesSociales?.instagram) && (
                     <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
-                      <h3 className="text-xs sm:text-sm font-semibold text-blue-600 mb-2 uppercase tracking-wide">Redes Sociales</h3>
+                      <h3 className="text-xs sm:text-sm font-semibold text-[#0d8e76] mb-2 uppercase tracking-wide">Redes Sociales</h3>
                       <div className="space-y-1">
                         {user.redesSociales?.facebook && (
                           <p className="text-gray-900 text-sm">Facebook: {user.redesSociales.facebook}</p>
@@ -832,7 +832,7 @@ const ProfilePage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="bg-[#0d8e76] text-white px-4 py-2 rounded-lg hover:bg-[#0b7a64] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? 'Cambiando...' : 'Cambiar Contraseña'}
                 </button>
@@ -862,7 +862,7 @@ const ProfilePage: React.FC = () => {
           {user.rol === 'comerciante' ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-blue-600">Productos Vendidos</h3>
+                <h3 className="text-sm font-medium text-[#0d8e76]">Productos Vendidos</h3>
                 <p className="text-2xl font-bold text-blue-900">
                   {user.estadisticas.productosVendidos || 0}
                 </p>
@@ -873,7 +873,7 @@ const ProfilePage: React.FC = () => {
                   ${(user.estadisticas.ingresosTotales || 0).toLocaleString('es-CO')}
                 </p>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
+              <div className="bg-[#f2902f]/10 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-purple-600">Pedidos Gestionados</h3>
                 <p className="text-2xl font-bold text-purple-900">
                   {user.estadisticas.pedidosRealizados || 0}
@@ -883,7 +883,7 @@ const ProfilePage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="text-sm font-medium text-blue-600">Pedidos Realizados</h3>
+                <h3 className="text-sm font-medium text-[#0d8e76]">Pedidos Realizados</h3>
                 <p className="text-2xl font-bold text-blue-900">
                   {user.estadisticas.pedidosRealizados || 0}
                 </p>
