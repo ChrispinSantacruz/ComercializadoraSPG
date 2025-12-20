@@ -1,4 +1,13 @@
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
+
+// Configurar SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('🔧 SendGrid configurado exitosamente');
+} else {
+  console.warn('⚠️ SendGrid API key no encontrada');
+}
 
 // Configuraciones predefinidas para proveedores populares
 const proveedoresEmail = {
@@ -122,13 +131,64 @@ const plantillas = {
   })
 };
 
-// Función principal para enviar emails
+// Función principal para enviar emails - SendGrid primero, SMTP como backup
 const enviarEmail = async (para, tipo, datos) => {
+  console.log(`🚀 Iniciando envío de email tipo '${tipo}' a: ${para}`);
+  
   try {
-    // Verificar si las credenciales de email están configuradas
+    const plantilla = plantillas[tipo];
+    if (!plantilla) {
+      throw new Error(`Plantilla de email '${tipo}' no encontrada`);
+    }
+    
+    const { subject, html } = plantilla(...datos);
+
+    // 1. INTENTAR CON SENDGRID PRIMERO
+    if (process.env.SENDGRID_API_KEY) {
+      try {
+        console.log('🔄 Intentando envío via SendGrid...');
+        
+        const mensaje = {
+          to: para,
+          from: {
+            email: process.env.SENDGRID_FROM_EMAIL || 'noreply@andinoexpress.com',
+            name: process.env.SENDGRID_FROM_NAME || 'AndinoExpress'
+          },
+          subject: subject,
+          html: html
+        };
+
+        console.log('📧 Enviando email via SendGrid:');
+        console.log(`   - Para: ${para}`);
+        console.log(`   - De: ${mensaje.from.name} <${mensaje.from.email}>`);
+        console.log(`   - Asunto: ${subject}`);
+
+        const resultado = await sgMail.send(mensaje);
+        console.log('✅ Email enviado exitosamente via SendGrid');
+        console.log(`📊 Message ID: ${resultado[0].headers['x-message-id']}`);
+        console.log(`📈 Status Code: ${resultado[0].statusCode}`);
+
+        return {
+          exito: true,
+          messageId: resultado[0].headers['x-message-id'],
+          proveedor: 'SendGrid',
+          statusCode: resultado[0].statusCode
+        };
+
+      } catch (sendGridError) {
+        console.error('❌ Error con SendGrid:', sendGridError.message);
+        console.log('🔄 Intentando con SMTP como backup...');
+        // Continuar con SMTP como backup
+      }
+    } else {
+      console.log('⚠️ SendGrid no configurado, usando SMTP...');
+    }
+
+    // 2. BACKUP CON SMTP SI SENDGRID FALLA
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.warn('⚠️ Email service not configured. Skipping email send.');
+      console.warn('⚠️ Ningún servicio de email configurado - modo desarrollo');
       console.log(`📧 [DEV MODE] Would send ${tipo} email to: ${para}`);
+      
       if (tipo === 'bienvenida' && datos[1]) {
         console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
         console.log(`🔑 CÓDIGO DE VERIFICACIÓN: ${datos[1]}`);
@@ -137,62 +197,38 @@ const enviarEmail = async (para, tipo, datos) => {
         console.log(`⏰ Válido por: 15 minutos`);
         console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
       }
+      
       return {
         exito: true,
         messageId: 'dev-mode-no-email',
-        warning: 'Email service not configured',
-        codigoVerificacion: tipo === 'bienvenida' ? datos[1] : null
+        warning: 'Ningún servicio de email configurado'
       };
     }
 
     const transporter = crearTransporter();
     
-    // Verificar conexión con timeout más corto
-    console.log('🔄 Verificando conexión SMTP...');
-    try {
-      await Promise.race([
-        transporter.verify(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout al verificar conexión SMTP')), 5000)
-        )
-      ]);
-      console.log('✅ Conexión SMTP verificada');
-    } catch (error) {
-      console.warn('⚠️ No se pudo verificar SMTP, continuando sin verificación:', error.message);
-      // Continuar sin verificación - el envío fallará gracefully si hay problemas
-    }
-    
-    const plantilla = plantillas[tipo];
-    if (!plantilla) {
-      throw new Error(`Plantilla de email '${tipo}' no encontrada`);
-    }
-    
-    const { subject, html } = plantilla(...datos);
-    
-    const mailOptions = {
-      from: `"AndinoExpress" <${process.env.EMAIL_USER}>`,
-      to: para,
-      subject: subject,
-      html: html
-    };
-    
-    // Enviar email con timeout
-    console.log('📤 Enviando email...');
+    console.log('📤 Enviando via SMTP...');
     const resultado = await Promise.race([
-      transporter.sendMail(mailOptions),
+      transporter.sendMail({
+        from: `"AndinoExpress" <${process.env.EMAIL_USER}>`,
+        to: para,
+        subject: subject,
+        html: html
+      }),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout al enviar email - el servidor de email no responde')), 15000)
+        setTimeout(() => reject(new Error('Connection timeout')), 10000)
       )
     ]);
-    console.log('✅ Email enviado exitosamente:', resultado.messageId);
     
+    console.log('✅ Email enviado via SMTP:', resultado.messageId);
     return {
       exito: true,
-      messageId: resultado.messageId
+      messageId: resultado.messageId,
+      proveedor: 'SMTP'
     };
-    
+
   } catch (error) {
-    console.error('❌ Error enviando email:', error);
+    console.error('❌ Error enviando email:', error.message);
     return {
       exito: false,
       error: error.message
