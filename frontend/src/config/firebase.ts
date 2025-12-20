@@ -7,7 +7,7 @@ import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, Use
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyC8fYI5D-X28u-tnjY3XkHlcj_RdKSUW7I",
-  authDomain: "andinoexpress-5fa41.firebaseapp.com",
+  authDomain: "andinoexpress.com",
   projectId: "andinoexpress-5fa41",
   storageBucket: "andinoexpress-5fa41.firebasestorage.app",
   messagingSenderId: "1008893784088",
