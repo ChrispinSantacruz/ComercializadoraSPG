@@ -3,7 +3,7 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const { validationResult } = require('express-validator');
-const { successResponse, errorResponse, paginateData } = require('../utils/helpers');
+const { successResponse, errorResponse, paginateData, validarObjectId } = require('../utils/helpers');
 const { enviarNotificacion } = require('../services/notificationService');
 const mongoose = require('mongoose');
 
@@ -376,6 +376,14 @@ const actualizarEstadoOrden = async (req, res) => {
     const { estado, numeroSeguimiento, transportadora } = req.body;
     const comercianteId = req.usuario.id;
 
+    // Validar que el ID sea un ObjectId válido
+    if (!validarObjectId(id)) {
+      return res.status(400).json({
+        exito: false,
+        mensaje: 'ID de orden inválido'
+      });
+    }
+
     console.log(`🔄 Actualizando orden ${id} a estado: ${estado}`);
 
     // Validar que la orden existe
@@ -459,6 +467,14 @@ const obtenerDetalleOrden = async (req, res) => {
     const usuarioId = req.usuario.id;
     const rolUsuario = req.usuario.rol;
 
+    // Validar que el ID sea un ObjectId válido
+    if (!validarObjectId(id)) {
+      return res.status(400).json({
+        exito: false,
+        mensaje: 'ID de orden inválido'
+      });
+    }
+
     const orden = await Order.findById(id)
       .populate('cliente', 'nombre email telefono')
       .populate('productos.producto', 'nombre imagenes comerciante')
@@ -512,6 +528,14 @@ const obtenerDetalleOrden = async (req, res) => {
 // @access  Private
 const obtenerPedidoPorId = async (req, res) => {
   try {
+    // Validar que el ID sea un ObjectId válido
+    if (!validarObjectId(req.params.id)) {
+      return res.status(400).json({
+        exito: false,
+        mensaje: 'ID de pedido inválido'
+      });
+    }
+
     const pedido = await Order.findById(req.params.id)
       .populate('cliente', 'nombre email telefono')
       .populate('productos.producto', 'nombre imagenes comerciante')
@@ -573,6 +597,11 @@ const obtenerPedidoPorId = async (req, res) => {
 const actualizarEstadoPedido = async (req, res) => {
   try {
     const { estado, comentario } = req.body;
+
+    // Validar que el ID sea un ObjectId válido
+    if (!validarObjectId(req.params.id)) {
+      return errorResponse(res, 'ID de pedido inválido', 400);
+    }
 
     const pedido = await Order.findById(req.params.id)
       .populate('usuario', 'nombre email');
@@ -659,6 +688,11 @@ const actualizarEstadoPedido = async (req, res) => {
 // @access  Private
 const cancelarPedido = async (req, res) => {
   try {
+    // Validar que el ID sea un ObjectId válido
+    if (!validarObjectId(req.params.id)) {
+      return errorResponse(res, 'ID de pedido inválido', 400);
+    }
+
     const pedido = await Order.findById(req.params.id);
 
     if (!pedido) {

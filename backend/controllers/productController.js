@@ -4,6 +4,7 @@ const { validationResult } = require('express-validator');
 const { successResponse, errorResponse, paginateData, transformarProducto, transformarProductos } = require('../utils/helpers');
 const Review = require('../models/Review'); // Added Review model
 const Order = require('../models/Order'); // Added Order model
+const mongoose = require('mongoose');
 
 // @desc    Obtener todos los productos
 // @route   GET /api/products
@@ -93,6 +94,12 @@ const getProductById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Validar que el ID sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      console.error('❌ ID de producto inválido:', id);
+      return errorResponse(res, 'ID de producto inválido', 400);
+    }
+
     const product = await Product.findById(id)
       .populate('categoria', 'nombre descripcion')
       .populate('comerciante', 'nombre email telefono direccion')
@@ -177,7 +184,14 @@ const getProductById = async (req, res) => {
     successResponse(res, 'Producto obtenido exitosamente', productData);
 
   } catch (error) {
-    console.error('Error obteniendo producto:', error);
+    console.error('❌ Error obteniendo producto:', error);
+    console.error('Stack trace:', error.stack);
+    
+    // Si es un error de cast (ID inválido que pasó la validación inicial)
+    if (error.name === 'CastError') {
+      return errorResponse(res, 'ID de producto inválido', 400);
+    }
+    
     errorResponse(res, 'Error interno del servidor', 500);
   }
 };
@@ -311,6 +325,11 @@ const crearProducto = async (req, res) => {
 // @access  Private (Comerciante - Solo sus productos)
 const actualizarProducto = async (req, res) => {
   try {
+    // Validar que el ID sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return errorResponse(res, 'ID de producto inválido', 400);
+    }
+
     const producto = await Product.findById(req.params.id);
 
     if (!producto) {
@@ -346,6 +365,11 @@ const actualizarProducto = async (req, res) => {
 // @access  Private (Comerciante - Solo sus productos)
 const eliminarProducto = async (req, res) => {
   try {
+    // Validar que el ID sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return errorResponse(res, 'ID de producto inválido', 400);
+    }
+
     const producto = await Product.findById(req.params.id);
 
     if (!producto) {
@@ -414,6 +438,11 @@ const obtenerMisProductos = async (req, res) => {
 // @access  Private (Comerciante - Solo sus productos)
 const subirImagenes = async (req, res) => {
   try {
+    // Validar que el ID sea un ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return errorResponse(res, 'ID de producto inválido', 400);
+    }
+
     const producto = await Product.findById(req.params.id);
 
     if (!producto) {

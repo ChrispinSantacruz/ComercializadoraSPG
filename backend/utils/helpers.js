@@ -367,6 +367,12 @@ const transformarUsuario = (usuario) => {
   return usuario;
 };
 
+// Validar ObjectId de MongoDB
+const validarObjectId = (id) => {
+  const mongoose = require('mongoose');
+  return mongoose.Types.ObjectId.isValid(id);
+};
+
 module.exports = {
   crearRespuesta,
   crearRespuestaError,
@@ -400,5 +406,6 @@ module.exports = {
   transformarUrlImagen,
   transformarProducto,
   transformarProductos,
-  transformarUsuario
+  transformarUsuario,
+  validarObjectId
 };

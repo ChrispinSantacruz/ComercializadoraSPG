@@ -1,7 +1,7 @@
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 const { validationResult } = require('express-validator');
-const { successResponse, errorResponse, paginateData } = require('../utils/helpers');
+const { successResponse, errorResponse, paginateData, validarObjectId } = require('../utils/helpers');
 const { enviarNotificacion } = require('../services/notificationService');
 
 // @desc    Obtener todas las categorías aprobadas
@@ -213,6 +213,11 @@ const crearCategoria = async (req, res) => {
 // @access  Private (Admin o creador)
 const actualizarCategoria = async (req, res) => {
   try {
+    // Validar que el ID sea un ObjectId válido
+    if (!validarObjectId(req.params.id)) {
+      return errorResponse(res, 'ID de categoría inválido', 400);
+    }
+
     const categoria = await Category.findById(req.params.id);
 
     if (!categoria) {
@@ -254,6 +259,11 @@ const actualizarCategoria = async (req, res) => {
 // @access  Private (Admin)
 const eliminarCategoria = async (req, res) => {
   try {
+    // Validar que el ID sea un ObjectId válido
+    if (!validarObjectId(req.params.id)) {
+      return errorResponse(res, 'ID de categoría inválido', 400);
+    }
+
     const categoria = await Category.findById(req.params.id);
 
     if (!categoria) {
@@ -323,6 +333,11 @@ const obtenerCategoriasPendientes = async (req, res) => {
 const aprobarCategoria = async (req, res) => {
   try {
     const { estado, comentario } = req.body;
+
+    // Validar que el ID sea un ObjectId válido
+    if (!validarObjectId(req.params.id)) {
+      return errorResponse(res, 'ID de categoría inválido', 400);
+    }
 
     if (!['activa', 'rechazada'].includes(estado)) {
       return errorResponse(res, 'Estado inválido. Debe ser "activa" o "rechazada"', 400);
