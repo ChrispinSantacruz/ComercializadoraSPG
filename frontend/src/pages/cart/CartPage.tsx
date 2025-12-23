@@ -178,7 +178,7 @@ const CartPage: React.FC = () => {
                       <div className="flex items-center border border-gray-300 rounded-lg">
                         <button
                           onClick={() => handleUpdateQuantity(item.producto._id, item.cantidad - 1)}
-                          disabled={updatingItem === item.producto._id || item.cantidad <= 1}
+                          disabled={!!(updatingItem === item.producto._id || item.cantidad <= 1)}
                           className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-l-lg"
                         >
                           -
@@ -188,7 +188,7 @@ const CartPage: React.FC = () => {
                         </span>
                         <button
                           onClick={() => handleUpdateQuantity(item.producto._id, item.cantidad + 1)}
-                          disabled={updatingItem === item.producto._id || item.cantidad >= item.producto.stock}
+                          disabled={!!(updatingItem === item.producto._id || item.cantidad >= item.producto.stock)}
                           className="px-3 py-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed rounded-r-lg"
                         >
                           +
@@ -198,7 +198,7 @@ const CartPage: React.FC = () => {
                       {/* Botón eliminar */}
                       <button
                         onClick={() => handleRemoveItem(item.producto._id)}
-                        disabled={updatingItem === item.producto._id}
+                        disabled={!!(updatingItem === item.producto._id)}
                         className="text-red-600 hover:text-red-800 p-2 disabled:opacity-50 hover:bg-red-50 rounded-lg transition-colors"
                         title="Eliminar producto"
                       >
