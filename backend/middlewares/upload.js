@@ -16,6 +16,12 @@ if (useCloudinary) {
     api_secret: process.env.CLOUDINARY_API_SECRET,
     secure: true
   });
+  
+  // Fix crítico: garantizar que cloudinary.v2 existe para multer-storage-cloudinary
+  if (!cloudinary.v2) {
+    cloudinary.v2 = cloudinary;
+  }
+  
   console.log('✅ Cloudinary configurado:', process.env.CLOUDINARY_CLOUD_NAME);
 } else {
   console.log('⚠️  Cloudinary no configurado - usando almacenamiento local');
