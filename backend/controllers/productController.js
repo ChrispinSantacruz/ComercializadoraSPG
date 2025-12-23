@@ -118,7 +118,7 @@ const getProductById = async (req, res) => {
 
     // Calcular estadísticas de reseñas
     const reviewStats = await Review.aggregate([
-      { $match: { producto: product._id } },
+      { $match: { producto: new mongoose.Types.ObjectId(id) } },
       {
         $group: {
           _id: null,
@@ -139,7 +139,7 @@ const getProductById = async (req, res) => {
     // Obtener productos relacionados (misma categoría)
     const productosRelacionados = await Product.find({
       categoria: product.categoria._id,
-      _id: { $ne: product._id },
+      _id: { $ne: id },
       estado: 'aprobado',
       stock: { $gt: 0 }
     })
@@ -150,9 +150,9 @@ const getProductById = async (req, res) => {
 
     // Obtener estadísticas de ventas del producto
     const ventasStats = await Order.aggregate([
-      { $match: { 'productos.producto': product._id, estado: 'entregado' } },
+      { $match: { 'productos.producto': new mongoose.Types.ObjectId(id), estado: 'entregado' } },
       { $unwind: '$productos' },
-      { $match: { 'productos.producto': product._id } },
+      { $match: { 'productos.producto': new mongoose.Types.ObjectId(id) } },
       {
         $group: {
           _id: null,
