@@ -1,7 +1,17 @@
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 const path = require('path');
+
+// Importar CloudinaryStorage de manera compatible con v2.2.1
+let CloudinaryStorage;
+try {
+  CloudinaryStorage = require('multer-storage-cloudinary').CloudinaryStorage;
+  if (!CloudinaryStorage) {
+    CloudinaryStorage = require('multer-storage-cloudinary');
+  }
+} catch (error) {
+  console.error('Error importing CloudinaryStorage:', error.message);
+}
 
 // Configurar Cloudinary solo si las credenciales están disponibles
 const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
