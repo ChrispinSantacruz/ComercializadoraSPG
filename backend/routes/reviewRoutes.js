@@ -13,11 +13,26 @@ const {
 } = require('../controllers/reviewController');
 const { protect, authorize } = require('../middlewares/auth');
 const { validarReseña } = require('../middlewares/validation');
+const { subirImagenesReseña } = require('../middlewares/upload');
+const multer = require('multer');
+
+// Configurar multer para recibir tanto imágenes como videos
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB
+  }
+});
+
+const uploadReviewMedia = upload.fields([
+  { name: 'imagenes', maxCount: 5 },
+  { name: 'videos', maxCount: 2 }
+]);
 
 // @route   POST /api/reviews
-// @desc    Crear nueva reseña
+// @desc    Crear nueva reseña con imágenes y videos
 // @access  Private (Cliente)
-router.post('/', protect, authorize('cliente'), validarReseña, crearReseña);
+router.post('/', protect, authorize('cliente'), uploadReviewMedia, validarReseña, crearReseña);
 
 // @route   GET /api/reviews/product/:productId
 // @desc    Obtener reseñas de un producto

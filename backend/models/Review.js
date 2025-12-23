@@ -51,6 +51,14 @@ const reviewSchema = new mongoose.Schema({
     descripcion: String
   }],
   
+  // Videos de la reseña (opcional)
+  videos: [{
+    url: String,
+    publicId: String,
+    duracion: Number,
+    descripcion: String
+  }],
+  
   // Aspectos específicos del producto
   aspectos: {
     calidad: {

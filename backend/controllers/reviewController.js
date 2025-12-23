@@ -132,16 +132,38 @@ const crearReseña = async (req, res) => {
     }
 
     // Crear reseña
-    const reseña = new Review({
+    const datosReseña = {
       usuario: req.usuario.id,
       producto,
+      pedido: pedido._id,
       calificacion,
       titulo,
       comentario,
       aspectos,
-      fechaCompra: pedido.fechaCreacion,
+      verificada: true, // Verificada porque compró el producto
       estado: 'aprobada' // Auto-aprobar por ahora
-    });
+    };
+
+    // Agregar imágenes si se subieron
+    if (req.files && req.files.imagenes) {
+      datosReseña.imagenes = req.files.imagenes.map(file => ({
+        url: file.path,
+        publicId: file.filename,
+        descripcion: ''
+      }));
+    }
+
+    // Agregar videos si se subieron
+    if (req.files && req.files.videos) {
+      datosReseña.videos = req.files.videos.map(file => ({
+        url: file.path,
+        publicId: file.filename,
+        duracion: 0, // Se puede agregar metadata después
+        descripcion: ''
+      }));
+    }
+
+    const reseña = new Review(datosReseña);
 
     await reseña.save();
 

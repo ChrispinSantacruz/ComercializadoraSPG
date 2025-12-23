@@ -84,22 +84,36 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Configuración de CORS - Más permisiva para desarrollo
+// Configuración de CORS - Más permisiva para desarrollo y producción
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',
-    'https://andinoexpress.com',
-    'https://www.andinoexpress.com',
-    process.env.FRONTEND_URL,
-    process.env.ADMIN_URL
-  ].filter(Boolean), // Filtrar valores undefined
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (como mobile apps, curl, postman)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      'https://andinoexpress.com',
+      'https://www.andinoexpress.com',
+      process.env.FRONTEND_URL,
+      process.env.ADMIN_URL
+    ].filter(Boolean); // Filtrar valores undefined
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.log('Origin not allowed by CORS:', origin);
+      callback(null, true); // En producción, ser permisivo pero logear
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept'],
-  optionsSuccessStatus: 200
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept', 'X-Signature', 'X-Timestamp'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 200,
+  maxAge: 86400 // 24 horas
 };
 app.use(cors(corsOptions));
 
