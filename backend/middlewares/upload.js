@@ -1,5 +1,5 @@
 const multer = require('multer');
-const CloudinaryStorage = require('multer-storage-cloudinary').CloudinaryStorage || require('multer-storage-cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 const path = require('path');
 
@@ -9,13 +9,17 @@ const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME &&
                      process.env.CLOUDINARY_API_SECRET;
 
 if (useCloudinary) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-    secure: true // Usar HTTPS
-  });
-  console.log('✅ Cloudinary configurado:', process.env.CLOUDINARY_CLOUD_NAME);
+  try {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true // Usar HTTPS
+    });
+    console.log('✅ Cloudinary configurado:', process.env.CLOUDINARY_CLOUD_NAME);
+  } catch (error) {
+    console.error('❌ Error configurando Cloudinary:', error.message);
+  }
 } else {
   console.log('⚠️  Cloudinary no configurado - usando almacenamiento local');
 }
