@@ -1,17 +1,7 @@
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');
-
-// Importar CloudinaryStorage de manera compatible con v2.2.1
-let CloudinaryStorage;
-try {
-  CloudinaryStorage = require('multer-storage-cloudinary').CloudinaryStorage;
-  if (!CloudinaryStorage) {
-    CloudinaryStorage = require('multer-storage-cloudinary');
-  }
-} catch (error) {
-  console.error('Error importing CloudinaryStorage:', error.message);
-}
 
 // Configurar Cloudinary solo si las credenciales están disponibles
 const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
@@ -19,19 +9,13 @@ const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME &&
                      process.env.CLOUDINARY_API_SECRET;
 
 if (useCloudinary) {
-  try {
-    cloudinary.config({
-      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-      api_key: process.env.CLOUDINARY_API_KEY,
-      api_secret: process.env.CLOUDINARY_API_SECRET,
-      secure: true, // Usar HTTPS
-      timeout: 60000, // 60 segundos timeout
-      chunk_size: 6000000 // 6MB chunks para uploads grandes
-    });
-    console.log('✅ Cloudinary configurado:', process.env.CLOUDINARY_CLOUD_NAME);
-  } catch (error) {
-    console.error('❌ Error configurando Cloudinary:', error.message);
-  }
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+  });
+  console.log('✅ Cloudinary configurado:', process.env.CLOUDINARY_CLOUD_NAME);
 } else {
   console.log('⚠️  Cloudinary no configurado - usando almacenamiento local');
 }
@@ -57,15 +41,14 @@ let productStorage;
 
 if (useCloudinary) {
   productStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary,
     params: {
       folder: 'comercializadora-spg/productos',
       allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
       transformation: [
         { width: 800, height: 800, crop: 'limit', quality: '80' }
       ],
-      format: 'webp', // Convertir a webp para mejor compresión
-      timeout: 60000 // 60 segundos
+      format: 'webp'
     }
   });
 } else {
@@ -88,15 +71,14 @@ let avatarStorage;
 
 if (useCloudinary) {
   avatarStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary,
     params: {
       folder: 'comercializadora-spg/avatares',
       allowed_formats: ['jpg', 'jpeg', 'png'],
       transformation: [
         { width: 200, height: 200, crop: 'fill', gravity: 'face', quality: '80' }
       ],
-      format: 'webp',
-      timeout: 60000
+      format: 'webp'
     }
   });
 } else {
@@ -119,15 +101,14 @@ let categoryStorage;
 
 if (useCloudinary) {
   categoryStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary,
     params: {
       folder: 'comercializadora-spg/categorias',
       allowed_formats: ['jpg', 'jpeg', 'png', 'svg'],
       transformation: [
         { width: 400, height: 400, crop: 'limit', quality: '80' }
       ],
-      format: 'webp',
-      timeout: 60000
+      format: 'webp'
     }
   });
 } else {
@@ -149,15 +130,14 @@ let reviewStorage;
 
 if (useCloudinary) {
   reviewStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary,
     params: {
       folder: 'comercializadora-spg/reseñas',
       allowed_formats: ['jpg', 'jpeg', 'png'],
       transformation: [
         { width: 600, height: 600, crop: 'limit', quality: '80' }
       ],
-      format: 'webp',
-      timeout: 60000
+      format: 'webp'
     }
   });
 } else {
@@ -179,15 +159,14 @@ let reviewVideoStorage;
 
 if (useCloudinary) {
   reviewVideoStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary,
     params: {
       folder: 'comercializadora-spg/reseñas/videos',
       allowed_formats: ['mp4', 'mov', 'avi', 'webm'],
       resource_type: 'video',
       transformation: [
         { width: 1280, crop: 'limit', quality: '80' }
-      ],
-      timeout: 120000 // 2 minutos para videos
+      ]
     }
   });
 } else {
