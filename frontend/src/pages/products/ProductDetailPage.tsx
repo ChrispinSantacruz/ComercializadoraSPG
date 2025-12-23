@@ -161,11 +161,11 @@ const ProductDetailPage: React.FC = () => {
   if (loading) return <LoadingSpinner />;
 
   if (error || !product) {
-    const shouldAutoRedirect = error && (
+    const shouldAutoRedirect = !!(error && (
       error.includes('inválido') || 
       error.includes('no encontrado') ||
       error.includes('no existe')
-    );
+    ));
 
     return (
       <ErrorDisplay
