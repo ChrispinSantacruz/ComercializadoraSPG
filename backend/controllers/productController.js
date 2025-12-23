@@ -1,7 +1,7 @@
 const Product = require('../models/Product');
 const User = require('../models/User');
 const { validationResult } = require('express-validator');
-const { successResponse, errorResponse, paginateData } = require('../utils/helpers');
+const { successResponse, errorResponse, paginateData, transformarProducto, transformarProductos } = require('../utils/helpers');
 const Review = require('../models/Review'); // Added Review model
 const Order = require('../models/Order'); // Added Order model
 
@@ -72,8 +72,11 @@ const obtenerProductos = async (req, res) => {
 
     console.log('📦 Productos encontrados:', productos.length, 'de', total);
 
+    // Transformar URLs de imágenes
+    const productosTransformados = transformarProductos(productos);
+
     successResponse(res, 'Productos obtenidos exitosamente', {
-      datos: productos, // Frontend espera 'datos' no 'productos'
+      datos: productosTransformados, // Frontend espera 'datos' no 'productos'
       paginacion
     });
 
@@ -152,15 +155,19 @@ const getProductById = async (req, res) => {
       }
     ]);
 
+    // Transformar URLs de imágenes
+    const productoTransformado = transformarProducto(product);
+    const productosRelacionadosTransformados = transformarProductos(productosRelacionados);
+
     const productData = {
-      ...product,
+      ...productoTransformado,
       reseñas: reviews,
       estadisticasReseñas: {
         totalReseñas: reviewStats[0]?.totalReseñas || 0,
         promedioCalificacion: reviewStats[0]?.promedioCalificacion || 0,
         distribucionCalificaciones
       },
-      productosRelacionados,
+      productosRelacionados: productosRelacionadosTransformados,
       estadisticasVentas: {
         totalVendido: ventasStats[0]?.totalVendido || 0,
         totalIngresos: ventasStats[0]?.totalIngresos || 0
@@ -388,8 +395,11 @@ const obtenerMisProductos = async (req, res) => {
 
     console.log('📦 Mis productos encontrados:', productos.length, 'de', total);
 
+    // Transformar URLs de imágenes
+    const productosTransformados = transformarProductos(productos);
+
     successResponse(res, 'Productos obtenidos exitosamente', {
-      datos: productos, // Frontend espera 'datos'
+      datos: productosTransformados, // Frontend espera 'datos'
       paginacion
     });
 

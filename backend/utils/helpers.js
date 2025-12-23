@@ -307,4 +307,98 @@ module.exports = {
   obtenerValoresUnicos,
   objetoAQueryString,
   queryStringAObjeto
-}; 
+};
+
+// Helper para convertir URLs locales a placeholder
+const transformarUrlImagen = (url) => {
+  if (!url) return null;
+  
+  // Si ya es una URL completa de Cloudinary o externa, devolverla tal cual
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Si es una ruta local que empieza con /uploads/, usar placeholder
+  if (url.startsWith('/uploads/')) {
+    return 'https://via.placeholder.com/400x400/e5e7eb/6b7280?text=Imagen+No+Disponible';
+  }
+  
+  return url;
+};
+
+// Transformar producto con URLs de imágenes
+const transformarProducto = (producto) => {
+  if (!producto) return null;
+  
+  // Transformar imagenPrincipal
+  if (producto.imagenPrincipal) {
+    producto.imagenPrincipal = transformarUrlImagen(producto.imagenPrincipal);
+  }
+  
+  // Transformar imagenes array
+  if (producto.imagenes && Array.isArray(producto.imagenes)) {
+    producto.imagenes = producto.imagenes.map(img => ({
+      ...img,
+      url: transformarUrlImagen(img.url)
+    }));
+  }
+  
+  return producto;
+};
+
+// Transformar array de productos
+const transformarProductos = (productos) => {
+  if (!Array.isArray(productos)) return productos;
+  return productos.map(transformarProducto);
+};
+
+// Transformar usuario con URLs de imágenes
+const transformarUsuario = (usuario) => {
+  if (!usuario) return null;
+  
+  if (usuario.avatar) {
+    usuario.avatar = transformarUrlImagen(usuario.avatar);
+  }
+  
+  if (usuario.banner) {
+    usuario.banner = transformarUrlImagen(usuario.banner);
+  }
+  
+  return usuario;
+};
+
+module.exports = {
+  crearRespuesta,
+  crearRespuestaError,
+  successResponse,
+  errorResponse,
+  paginateData: crearPaginacion,
+  crearPaginacion,
+  generarSlug,
+  formatearPrecio,
+  calcularPorcentajeDescuento,
+  validarEmail,
+  validarTelefonoColombia,
+  generarNumeroOrden,
+  calcularTiempoLectura,
+  truncarTexto,
+  capitalizarPrimeraLetra,
+  capitalizarPalabras,
+  limpiarTexto,
+  generarColorAleatorio,
+  validarFormatoArchivo,
+  obtenerExtensionArchivo,
+  formatearTamañoArchivo,  
+  generarHashSimple,
+  debounce,
+  throttle,
+  ordenarPor,
+  agruparPor,
+  obtenerValoresUnicos,
+  objetoAQueryString,
+  queryStringAObjeto,
+  transformarUrlImagen,
+  transformarProducto,
+  transformarProductos,
+  transformarUsuario
+};
