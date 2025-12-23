@@ -5,6 +5,7 @@ import { productService } from '../../services/productService';
 import { useCartStore } from '../../stores/cartStore';
 import categoryService from '../../services/categoryService';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ErrorDisplay from '../../components/ui/ErrorDisplay';
 import { useNotifications } from '../../components/ui/NotificationContainer';
 import { getImageUrl, handleImageError, getFirstImageUrl } from '../../utils/imageUtils';
 
@@ -28,6 +29,7 @@ const ProductDetailPage: React.FC = () => {
     
     try {
       setLoading(true);
+      setError(null);
       const productData = await productService.getProductById(id);
       setProduct(productData);
       
@@ -46,14 +48,35 @@ const ProductDetailPage: React.FC = () => {
         setCategory(productData.categoria as Category);
       }
       
-      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error cargando producto');
+      console.error('Error cargando producto:', err);
+      
+      // Mensajes de error amigables
+      let mensajeError = 'Error cargando el producto';
+      
+      if (err instanceof Error) {
+        const mensaje = err.message.toLowerCase();
+        
+        if (mensaje.includes('inválido') || mensaje.includes('invalid')) {
+          mensajeError = 'El enlace del producto no es válido. Por favor, verifica la URL.';
+          // Redirigir a productos después de 3 segundos
+          setTimeout(() => navigate('/productos'), 3000);
+        } else if (mensaje.includes('no encontrado') || mensaje.includes('not found')) {
+          mensajeError = 'Este producto no existe o ha sido eliminado.';
+          setTimeout(() => navigate('/productos'), 3000);
+        } else if (mensaje.includes('conexión') || mensaje.includes('network')) {
+          mensajeError = 'Error de conexión. Por favor, verifica tu internet.';
+        } else {
+          mensajeError = err.message;
+        }
+      }
+      
+      setError(mensajeError);
       setProduct(null);
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, navigate]);
 
   useEffect(() => {
     if (id) {
@@ -138,18 +161,22 @@ const ProductDetailPage: React.FC = () => {
   if (loading) return <LoadingSpinner />;
 
   if (error || !product) {
+    const shouldAutoRedirect = error && (
+      error.includes('inválido') || 
+      error.includes('no encontrado') ||
+      error.includes('no existe')
+    );
+
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          <p className="font-medium">Error: {error || 'Producto no encontrado'}</p>
-          <button
-            onClick={() => navigate('/productos')}
-            className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
-          >
-            Volver a productos
-          </button>
-        </div>
-      </div>
+      <ErrorDisplay
+        error={error || 'Producto no encontrado'}
+        title="Producto no disponible"
+        onRetry={loadProduct}
+        redirectPath="/productos"
+        redirectLabel="Ver todos los productos"
+        autoRedirect={shouldAutoRedirect}
+        autoRedirectDelay={3000}
+      />
     );
   }
 

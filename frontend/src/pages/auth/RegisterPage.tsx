@@ -17,6 +17,58 @@ const RegisterPage: React.FC = () => {
   });
 
   const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Calcular fortaleza de la contraseña
+  const getPasswordStrength = (password: string): { level: 'weak' | 'moderate' | 'strong', text: string, color: string, bgColor: string } => {
+    if (!password) {
+      return { level: 'weak', text: '', color: '', bgColor: '' };
+    }
+
+    let strength = 0;
+    
+    // Longitud
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    
+    // Tiene mayúsculas
+    if (/[A-Z]/.test(password)) strength++;
+    
+    // Tiene minúsculas
+    if (/[a-z]/.test(password)) strength++;
+    
+    // Tiene números
+    if (/[0-9]/.test(password)) strength++;
+    
+    // Tiene caracteres especiales
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+    if (strength <= 2) {
+      return { 
+        level: 'weak', 
+        text: 'Débil', 
+        color: 'text-red-700', 
+        bgColor: 'bg-red-100 border-red-400' 
+      };
+    } else if (strength <= 4) {
+      return { 
+        level: 'moderate', 
+        text: 'Moderada', 
+        color: 'text-yellow-700', 
+        bgColor: 'bg-yellow-100 border-yellow-400' 
+      };
+    } else {
+      return { 
+        level: 'strong', 
+        text: 'Fuerte', 
+        color: 'text-green-700', 
+        bgColor: 'bg-green-100 border-green-400' 
+      };
+    }
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
 
   const validateForm = () => {
     const errors: string[] = [];
@@ -214,35 +266,78 @@ const RegisterPage: React.FC = () => {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Contraseña
               </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Contraseña (mínimo 6 caracteres)"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
+              <div className="relative mt-1">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  required
+                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="Contraseña (mínimo 6 caracteres)"
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+              
+              {/* Indicador de fortaleza de contraseña */}
+              {formData.password && (
+                <div className={`mt-2 p-2 rounded border ${passwordStrength.bgColor}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-700">Fortaleza:</span>
+                    <span className={`text-xs font-semibold ${passwordStrength.color}`}>
+                      {passwordStrength.text}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-600">
+                    {passwordStrength.level === 'weak' && (
+                      <span>Usa mayúsculas, números y símbolos para mayor seguridad</span>
+                    )}
+                    {passwordStrength.level === 'moderate' && (
+                      <span>Buena contraseña. Considera agregar más caracteres.</span>
+                    )}
+                    {passwordStrength.level === 'strong' && (
+                      <span>¡Excelente! Tu contraseña es muy segura.</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirmar contraseña
               </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="Confirma tu contraseña"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
+              <div className="relative mt-1">
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  required
+                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="Confirma tu contraseña"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
           </div>
 

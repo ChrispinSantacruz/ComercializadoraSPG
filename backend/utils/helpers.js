@@ -320,7 +320,7 @@ const transformarUrlImagen = (url) => {
   
   // Si es una ruta local que empieza con /uploads/, usar placeholder
   if (url.startsWith('/uploads/')) {
-    return 'https://via.placeholder.com/400x400/e5e7eb/6b7280?text=Imagen+No+Disponible';
+    return 'https://placehold.co/400x400/e5e7eb/6b7280?text=Imagen+No+Disponible';
   }
   
   return url;

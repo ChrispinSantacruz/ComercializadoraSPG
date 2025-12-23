@@ -85,24 +85,36 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ isLoading = fal
     } catch (error: any) {
       console.error('❌ Error en login social:', error);
       
+      // Mensajes de error amigables para el usuario
+      let mensajeError = '';
+      
       // Manejar errores específicos de Firebase
       if (error.code === 'auth/popup-closed-by-user') {
         console.log('👤 Usuario canceló la autenticación');
         setError(''); // No mostrar error si el usuario canceló intencionalmente
-        return; // Salir sin mostrar alert
+        return; // Salir sin mostrar nada
       } else if (error.code === 'auth/popup-blocked') {
-        setError('Popup bloqueado. Por favor, permite los popups para este sitio.');
+        mensajeError = 'Por favor, permite las ventanas emergentes para iniciar sesión con ' + 
+          (provider === 'google' ? 'Google' : 'Facebook') + '.';
       } else if (error.code === 'auth/cancelled-popup-request') {
         console.log('🔄 Popup cancelado por nueva solicitud');
         setError('');
         return;
+      } else if (error.code === 'auth/network-request-failed') {
+        mensajeError = 'Error de conexión. Por favor, verifica tu internet y vuelve a intentar.';
+      } else if (error.code === 'auth/too-many-requests') {
+        mensajeError = 'Demasiados intentos. Por favor, espera unos minutos antes de intentar nuevamente.';
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        mensajeError = 'Ya existe una cuenta con este correo usando un método de inicio de sesión diferente.';
       } else {
-        setError(error.message || 'Error al iniciar sesión con ' + provider);
+        // Mensaje genérico pero amigable
+        mensajeError = error.message || 
+          'No pudimos completar el inicio de sesión con ' + 
+          (provider === 'google' ? 'Google' : 'Facebook') + 
+          '. Por favor, intenta nuevamente.';
       }
       
-      if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-        alert('Error: ' + (error.message || 'Error al iniciar sesión'));
-      }
+      setError(mensajeError);
     } finally {
       setLoading(false);
     }
@@ -118,6 +130,12 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ isLoading = fal
 
   return (
     <div className="space-y-3">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+      
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-gray-300" />

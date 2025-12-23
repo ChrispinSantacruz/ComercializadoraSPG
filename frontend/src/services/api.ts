@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  timeout: 10000,
+  timeout: 30000, // 30 segundos para operaciones lentas
 });
 
 // Interceptor para agregar token de autenticación
@@ -60,15 +60,25 @@ api.interceptors.response.use(
 
     // Formatear error para mostrar al usuario
     const errorData = error.response?.data as any;
-    let errorMessage = 
-      errorData?.mensaje || 
-      errorData?.message || 
-      error.message || 
-      'Error de conexión';
+    let errorMessage = 'Ha ocurrido un error';
+
+    // Manejar diferentes tipos de errores con mensajes amigables
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      errorMessage = 'La solicitud está tomando más tiempo de lo esperado. Por favor, intenta nuevamente.';
+    } else if (error.code === 'ERR_NETWORK' || !error.response) {
+      errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión a internet.';
+    } else if (error.response?.status === 400) {
+      errorMessage = errorData?.mensaje || 'Los datos enviados no son válidos';
+    } else if (error.response?.status === 404) {
+      errorMessage = errorData?.mensaje || 'El recurso solicitado no fue encontrado';
+    } else if (error.response?.status === 500) {
+      errorMessage = 'Error del servidor. Nuestro equipo está trabajando en resolverlo.';
+    } else {
+      errorMessage = errorData?.mensaje || errorData?.message || error.message || 'Error de conexión';
+    }
     
     // Si hay errores de validación específicos, incluirlos
     if (errorData?.errores && Array.isArray(errorData.errores)) {
-      // Extraer solo los mensajes de error
       const mensajesError = errorData.errores.map((err: any) => 
         err.mensaje || err.msg || err.message || JSON.stringify(err)
       );

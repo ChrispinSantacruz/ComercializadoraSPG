@@ -77,7 +77,7 @@ const crearPedido = async (req, res) => {
     }
 
     // Calcular impuestos y total
-    const impuestos = Math.round(subtotal * 0.19);
+    const impuestos = Math.round(subtotal * 0.15);
     const costoEnvio = 18000; // Costo de envío fijo de $18.000 COP
     const total = subtotal + impuestos + costoEnvio;
 

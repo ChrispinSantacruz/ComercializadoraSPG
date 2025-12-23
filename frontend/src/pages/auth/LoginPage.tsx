@@ -43,7 +43,26 @@ const LoginPage: React.FC = () => {
       await login(formData.email, formData.password);
       navigate('/'); // Redirigir al home
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al iniciar sesión');
+      // Mensajes de error más amigables
+      let mensajeError = 'Error al iniciar sesión';
+      
+      if (err instanceof Error) {
+        const mensaje = err.message.toLowerCase();
+        
+        if (mensaje.includes('credenciales') || mensaje.includes('incorrecta') || mensaje.includes('invalid')) {
+          mensajeError = 'Email o contraseña incorrectos. Por favor, verifica tus credenciales.';
+        } else if (mensaje.includes('cuenta no verificada') || mensaje.includes('verificar email')) {
+          mensajeError = 'Tu cuenta aún no ha sido verificada. Revisa tu correo electrónico.';
+        } else if (mensaje.includes('cuenta bloqueada') || mensaje.includes('suspended')) {
+          mensajeError = 'Tu cuenta ha sido bloqueada. Contacta al soporte para más información.';
+        } else if (mensaje.includes('red') || mensaje.includes('network') || mensaje.includes('conexión')) {
+          mensajeError = 'Error de conexión. Verifica tu internet y vuelve a intentar.';
+        } else {
+          mensajeError = err.message;
+        }
+      }
+      
+      setError(mensajeError);
     } finally {
       setLoading(false);
     }
@@ -65,8 +84,19 @@ const LoginPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error}
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">
+                  {error}
+                </p>
+              </div>
+            </div>
           </div>
         )}
 

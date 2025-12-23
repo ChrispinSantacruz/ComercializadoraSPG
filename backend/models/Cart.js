@@ -284,8 +284,8 @@ cartSchema.methods.calcularTotales = function() {
     }
   }, 0);
   
-  // Calcular impuestos (19% IVA en Colombia)
-  const impuestos = (subtotal - descuentos) * 0.19;
+  // Calcular impuestos (15% IVA)
+  const impuestos = (subtotal - descuentos) * 0.15;
   
   // Costo de envío fijo de $18.000 COP (solo si hay productos en el carrito)
   const costoEnvio = this.productos.length > 0 ? 18000 : 0;
