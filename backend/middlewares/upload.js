@@ -1,5 +1,5 @@
 const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require('cloudinary');
 const multerStorageCloudinary = require('multer-storage-cloudinary');
 const CloudinaryStorage = multerStorageCloudinary.CloudinaryStorage || multerStorageCloudinary;
 const path = require('path');
@@ -10,7 +10,7 @@ const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME &&
                      process.env.CLOUDINARY_API_SECRET;
 
 if (useCloudinary) {
-  cloudinary.config({
+  cloudinary.v2.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
@@ -280,7 +280,7 @@ const manejarErroresSubida = (error, req, res, next) => {
 // Función para eliminar imagen de Cloudinary
 const eliminarImagen = async (publicId) => {
   try {
-    const resultado = await cloudinary.uploader.destroy(publicId);
+    const resultado = await cloudinary.v2.uploader.destroy(publicId);
     return resultado;
   } catch (error) {
     console.error('Error eliminando imagen de Cloudinary:', error);
@@ -291,7 +291,7 @@ const eliminarImagen = async (publicId) => {
 // Función para eliminar múltiples imágenes
 const eliminarMultiplesImagenes = async (publicIds) => {
   try {
-    const resultado = await cloudinary.api.delete_resources(publicIds);
+    const resultado = await cloudinary.v2.api.delete_resources(publicIds);
     return resultado;
   } catch (error) {
     console.error('Error eliminando múltiples imágenes:', error);
