@@ -51,6 +51,9 @@ const passport = require('./config/passport');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Configurar trust proxy para Render (necesario para rate limiting y CORS)
+app.set('trust proxy', 1);
+
 // Middlewares de seguridad
 app.use(helmet());
 app.use(compression());
