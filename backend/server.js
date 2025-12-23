@@ -107,7 +107,7 @@ const corsOptions = {
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
-      console.log('Origin not allowed by CORS:', origin);
+      console.log('⚠️  Origin not allowed by CORS:', origin);
       callback(null, true); // En producción, ser permisivo pero logear
     }
   },
@@ -116,9 +116,13 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept', 'X-Signature', 'X-Timestamp'],
   exposedHeaders: ['Content-Range', 'X-Content-Range'],
   optionsSuccessStatus: 200,
+  preflightContinue: false,
   maxAge: 86400 // 24 horas
 };
 app.use(cors(corsOptions));
+
+// Manejador explícito de preflight OPTIONS
+app.options('*', cors(corsOptions));
 
 // Middleware adicional para manejar CORS en rutas de archivos estáticos
 app.use('/api/uploads', (req, res, next) => {
