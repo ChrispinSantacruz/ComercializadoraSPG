@@ -35,6 +35,12 @@ import MerchantDashboard from '../pages/merchant/MerchantDashboard';
 import MerchantProducts from '../pages/merchant/MerchantProducts';
 import MerchantOrders from '../pages/merchant/MerchantOrders';
 import MerchantAnalytics from '../pages/merchant/MerchantAnalytics';
+import MerchantReviewsPage from '../pages/merchant/MerchantReviewsPage';
+
+// Páginas de pago
+import PaymentSuccessPage from '../pages/payment/PaymentSuccessPage';
+import PaymentPendingPage from '../pages/payment/PaymentPendingPage';
+import PaymentFailedPage from '../pages/payment/PaymentFailedPage';
 
 
 
@@ -88,6 +94,11 @@ const AppRoutes: React.FC = () => {
         <Route path="payment/wompi/return" element={<WompiReturnPageFixed />} />
         <Route path="wompi-return" element={<WompiReturnPageFixed />} />
         <Route path="order-confirmation" element={<WompiReturnPageFixed />} />
+        
+        {/* Páginas de estado de pago */}
+        <Route path="payment/success" element={<PaymentSuccessPage />} />
+        <Route path="payment/pending" element={<PaymentPendingPage />} />
+        <Route path="payment/failed" element={<PaymentFailedPage />} />
         
         {/* Rutas de autenticación - solo para no autenticados */}
         <Route 
@@ -153,6 +164,11 @@ const AppRoutes: React.FC = () => {
         <Route path="merchant/analytics" element={
           <ProtectedRoute requiredRole="comerciante">
             <MerchantAnalytics />
+          </ProtectedRoute>
+        } />
+        <Route path="merchant/reviews" element={
+          <ProtectedRoute requiredRole="comerciante">
+            <MerchantReviewsPage />
           </ProtectedRoute>
         } />
 

@@ -121,7 +121,7 @@ if (useCloudinary) {
   });
 }
 
-// Configuración de storage para reseñas
+// Configuración de storage para reseñas (imágenes)
 let reviewStorage;
 
 if (useCloudinary) {
@@ -146,6 +146,36 @@ if (useCloudinary) {
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
       cb(null, 'review-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+}
+
+// Configuración de storage para videos de reseñas
+let reviewVideoStorage;
+
+if (useCloudinary) {
+  reviewVideoStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: 'comercializadora-spg/reseñas/videos',
+      allowed_formats: ['mp4', 'mov', 'avi', 'webm'],
+      resource_type: 'video',
+      transformation: [
+        { width: 1280, crop: 'limit', quality: 'auto' },
+        { fetch_format: 'auto' }
+      ]
+    }
+  });
+} else {
+  reviewVideoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadPath = path.join(__dirname, '../uploads/reseñas/videos');
+      require('fs').mkdirSync(uploadPath, { recursive: true });
+      cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, 'review-video-' + uniqueSuffix + path.extname(file.originalname));
     }
   });
 }
@@ -277,6 +307,27 @@ const crearMiddlewareSubida = (uploadMiddleware) => {
   };
 };
 
+// Multer instance para videos de reseñas
+const subirVideosReseña = multer({
+  storage: reviewVideoStorage,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB para videos
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /mp4|mov|avi|webm/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = /video\/(mp4|quicktime|x-msvideo|webm)/.test(file.mimetype);
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      const error = new Error('Solo se permiten videos (mp4, mov, avi, webm)');
+      error.code = 'INVALID_FILE_TYPE';
+      cb(error, false);
+    }
+  }
+}).array('videos', 2); // Máximo 2 videos por reseña
+
 module.exports = {
   cloudinary,
   subirImagenesProducto: crearMiddlewareSubida(subirImagenesProducto),
@@ -285,6 +336,7 @@ module.exports = {
   subirBanner: crearMiddlewareSubida(subirBanner),
   subirImagenCategoria: crearMiddlewareSubida(subirImagenCategoria),
   subirImagenesReseña: crearMiddlewareSubida(subirImagenesReseña),
+  subirVideosReseña: crearMiddlewareSubida(subirVideosReseña),
   eliminarImagen,
   eliminarMultiplesImagenes,
   manejarErroresSubida
