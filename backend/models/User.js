@@ -262,12 +262,38 @@ userSchema.methods.compararPassword = async function(passwordCandidato) {
   return await bcrypt.compare(passwordCandidato, this.password);
 };
 
+// Helper para convertir URLs locales a placeholder
+const getImageUrl = (url) => {
+  if (!url) return null;
+  
+  // Si ya es una URL completa de Cloudinary, devolverla tal cual
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Si es una ruta local que empieza con /uploads/, usar placeholder
+  if (url.startsWith('/uploads/')) {
+    return 'https://via.placeholder.com/800x200/e5e7eb/6b7280?text=Banner+No+Disponible';
+  }
+  
+  return url;
+};
+
 // Método para obtener datos del usuario sin información sensible
 userSchema.methods.toJSON = function() {
   const usuario = this.toObject();
   delete usuario.password;
   delete usuario.tokenVerificacion;
   delete usuario.tokenRecuperacion;
+  
+  // Transformar URLs de imágenes
+  if (usuario.avatar) {
+    usuario.avatar = getImageUrl(usuario.avatar);
+  }
+  if (usuario.banner) {
+    usuario.banner = getImageUrl(usuario.banner);
+  }
+  
   return usuario;
 };
 

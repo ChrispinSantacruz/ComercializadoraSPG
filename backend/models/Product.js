@@ -304,4 +304,64 @@ productSchema.methods.reducirStock = function(cantidad) {
   throw new Error('Stock insuficiente');
 };
 
+// Helper para convertir URLs locales a placeholder
+const getImageUrl = (url) => {
+  if (!url) return null;
+  
+  // Si ya es una URL completa de Cloudinary, devolverla tal cual
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Si es una ruta local que empieza con /uploads/, usar placeholder
+  if (url.startsWith('/uploads/')) {
+    // Imagen placeholder genérica
+    return 'https://via.placeholder.com/400x400/e5e7eb/6b7280?text=Imagen+No+Disponible';
+  }
+  
+  return url;
+};
+
+// Transformar el objeto cuando se convierte a JSON
+productSchema.set('toJSON', {
+  virtuals: true,
+  transform: function(doc, ret) {
+    // Transformar imagenPrincipal
+    if (ret.imagenPrincipal) {
+      ret.imagenPrincipal = getImageUrl(ret.imagenPrincipal);
+    }
+    
+    // Transformar imagenes array
+    if (ret.imagenes && Array.isArray(ret.imagenes)) {
+      ret.imagenes = ret.imagenes.map(img => ({
+        ...img,
+        url: getImageUrl(img.url)
+      }));
+    }
+    
+    return ret;
+  }
+});
+
+// Transformar el objeto cuando se usa lean()
+productSchema.set('toObject', {
+  virtuals: true,
+  transform: function(doc, ret) {
+    // Transformar imagenPrincipal
+    if (ret.imagenPrincipal) {
+      ret.imagenPrincipal = getImageUrl(ret.imagenPrincipal);
+    }
+    
+    // Transformar imagenes array
+    if (ret.imagenes && Array.isArray(ret.imagenes)) {
+      ret.imagenes = ret.imagenes.map(img => ({
+        ...img,
+        url: getImageUrl(img.url)
+      }));
+    }
+    
+    return ret;
+  }
+});
+
 module.exports = mongoose.model('Product', productSchema); 
