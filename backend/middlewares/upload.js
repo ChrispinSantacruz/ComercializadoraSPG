@@ -47,17 +47,34 @@ const fileFilter = (req, file, cb) => {
 let productStorage;
 
 if (useCloudinary) {
-  productStorage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-      folder: 'comercializadora-spg/productos',
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-      transformation: [
-        { width: 800, height: 800, crop: 'limit', quality: '80' }
-      ],
-      format: 'webp'
-    }
-  });
+  try {
+    productStorage = new CloudinaryStorage({
+      cloudinary: cloudinary.v2,
+      params: {
+        folder: 'comercializadora-spg/productos',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        transformation: [
+          { width: 800, height: 800, crop: 'limit', quality: '80' }
+        ],
+        format: 'webp'
+      }
+    });
+    console.log('✅ Storage de productos configurado con Cloudinary');
+  } catch (error) {
+    console.error('❌ Error configurando storage de productos con Cloudinary:', error);
+    // Fallback a almacenamiento local si hay error
+    productStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../uploads/productos');
+        require('fs').mkdirSync(uploadPath, { recursive: true });
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
+      }
+    });
+  }
 } else {
   // Almacenamiento local como fallback
   productStorage = multer.diskStorage({
@@ -77,17 +94,33 @@ if (useCloudinary) {
 let avatarStorage;
 
 if (useCloudinary) {
-  avatarStorage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-      folder: 'comercializadora-spg/avatares',
-      allowed_formats: ['jpg', 'jpeg', 'png'],
-      transformation: [
-        { width: 200, height: 200, crop: 'fill', gravity: 'face', quality: '80' }
-      ],
-      format: 'webp'
-    }
-  });
+  try {
+    avatarStorage = new CloudinaryStorage({
+      cloudinary: cloudinary.v2,
+      params: {
+        folder: 'comercializadora-spg/avatares',
+        allowed_formats: ['jpg', 'jpeg', 'png'],
+        transformation: [
+          { width: 200, height: 200, crop: 'fill', gravity: 'face', quality: '80' }
+        ],
+        format: 'webp'
+      }
+    });
+    console.log('✅ Storage de avatares configurado con Cloudinary');
+  } catch (error) {
+    console.error('❌ Error configurando storage de avatares:', error);
+    avatarStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../uploads/avatares');
+        require('fs').mkdirSync(uploadPath, { recursive: true });
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'avatar-' + uniqueSuffix + path.extname(file.originalname));
+      }
+    });
+  }
 } else {
   // Almacenamiento local como fallback
   avatarStorage = multer.diskStorage({
@@ -107,17 +140,33 @@ if (useCloudinary) {
 let categoryStorage;
 
 if (useCloudinary) {
-  categoryStorage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-      folder: 'comercializadora-spg/categorias',
-      allowed_formats: ['jpg', 'jpeg', 'png', 'svg'],
-      transformation: [
-        { width: 400, height: 400, crop: 'limit', quality: '80' }
-      ],
-      format: 'webp'
-    }
-  });
+  try {
+    categoryStorage = new CloudinaryStorage({
+      cloudinary: cloudinary.v2,
+      params: {
+        folder: 'comercializadora-spg/categorias',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'svg'],
+        transformation: [
+          { width: 400, height: 400, crop: 'limit', quality: '80' }
+        ],
+        format: 'webp'
+      }
+    });
+    console.log('✅ Storage de categorías configurado con Cloudinary');
+  } catch (error) {
+    console.error('❌ Error configurando storage de categorías:', error);
+    categoryStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../uploads/categorias');
+        require('fs').mkdirSync(uploadPath, { recursive: true });
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'category-' + uniqueSuffix + path.extname(file.originalname));
+      }
+    });
+  }
 } else {
   categoryStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -136,17 +185,33 @@ if (useCloudinary) {
 let reviewStorage;
 
 if (useCloudinary) {
-  reviewStorage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-      folder: 'comercializadora-spg/reseñas',
-      allowed_formats: ['jpg', 'jpeg', 'png'],
-      transformation: [
-        { width: 600, height: 600, crop: 'limit', quality: '80' }
-      ],
-      format: 'webp'
-    }
-  });
+  try {
+    reviewStorage = new CloudinaryStorage({
+      cloudinary: cloudinary.v2,
+      params: {
+        folder: 'comercializadora-spg/reseñas',
+        allowed_formats: ['jpg', 'jpeg', 'png'],
+        transformation: [
+          { width: 600, height: 600, crop: 'limit', quality: '80' }
+        ],
+        format: 'webp'
+      }
+    });
+    console.log('✅ Storage de reseñas configurado con Cloudinary');
+  } catch (error) {
+    console.error('❌ Error configurando storage de reseñas:', error);
+    reviewStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../uploads/reseñas');
+        require('fs').mkdirSync(uploadPath, { recursive: true });
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'review-' + uniqueSuffix + path.extname(file.originalname));
+      }
+    });
+  }
 } else {
   reviewStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -165,17 +230,33 @@ if (useCloudinary) {
 let reviewVideoStorage;
 
 if (useCloudinary) {
-  reviewVideoStorage = new CloudinaryStorage({
-    cloudinary,
-    params: {
-      folder: 'comercializadora-spg/reseñas/videos',
-      allowed_formats: ['mp4', 'mov', 'avi', 'webm'],
-      resource_type: 'video',
-      transformation: [
-        { width: 1280, crop: 'limit', quality: '80' }
-      ]
-    }
-  });
+  try {
+    reviewVideoStorage = new CloudinaryStorage({
+      cloudinary: cloudinary.v2,
+      params: {
+        folder: 'comercializadora-spg/reseñas/videos',
+        allowed_formats: ['mp4', 'mov', 'avi', 'webm'],
+        resource_type: 'video',
+        transformation: [
+          { width: 1280, crop: 'limit', quality: '80' }
+        ]
+      }
+    });
+    console.log('✅ Storage de videos de reseñas configurado con Cloudinary');
+  } catch (error) {
+    console.error('❌ Error configurando storage de videos:', error);
+    reviewVideoStorage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const uploadPath = path.join(__dirname, '../uploads/reseñas/videos');
+        require('fs').mkdirSync(uploadPath, { recursive: true });
+        cb(null, uploadPath);
+      },
+      filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'review-video-' + uniqueSuffix + path.extname(file.originalname));
+      }
+    });
+  }
 } else {
   reviewVideoStorage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -285,6 +366,16 @@ const manejarErroresSubida = (error, req, res, next) => {
 
 // Función para eliminar imagen de Cloudinary
 const eliminarImagen = async (publicId) => {
+  if (!useCloudinary) {
+    console.warn('⚠️  Cloudinary no configurado - no se puede eliminar imagen');
+    return { result: 'not_configured' };
+  }
+  
+  if (!cloudinary.v2 || !cloudinary.v2.uploader) {
+    console.error('❌ cloudinary.v2.uploader no está disponible');
+    throw new Error('Cloudinary no está correctamente configurado');
+  }
+  
   try {
     const resultado = await cloudinary.v2.uploader.destroy(publicId);
     return resultado;
@@ -296,6 +387,16 @@ const eliminarImagen = async (publicId) => {
 
 // Función para eliminar múltiples imágenes
 const eliminarMultiplesImagenes = async (publicIds) => {
+  if (!useCloudinary) {
+    console.warn('⚠️  Cloudinary no configurado - no se pueden eliminar imágenes');
+    return { result: 'not_configured' };
+  }
+  
+  if (!cloudinary.v2 || !cloudinary.v2.api) {
+    console.error('❌ cloudinary.v2.api no está disponible');
+    throw new Error('Cloudinary no está correctamente configurado');
+  }
+  
   try {
     const resultado = await cloudinary.v2.api.delete_resources(publicIds);
     return resultado;
@@ -339,7 +440,9 @@ const subirVideosReseña = multer({
 }).array('videos', 2); // Máximo 2 videos por reseña
 
 module.exports = {
-  cloudinary,
+  cloudinary: useCloudinary ? cloudinary.v2 : null,
+  cloudinaryV2: useCloudinary ? cloudinary.v2 : null,
+  useCloudinary,
   subirImagenesProducto: crearMiddlewareSubida(subirImagenesProducto),
   subirImagenPrincipalProducto: crearMiddlewareSubida(subirImagenPrincipalProducto),
   subirAvatar: crearMiddlewareSubida(subirAvatar),

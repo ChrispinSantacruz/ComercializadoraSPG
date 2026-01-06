@@ -330,26 +330,37 @@ const transformarUrlImagen = (url) => {
 const transformarProducto = (producto) => {
   if (!producto) return null;
   
-  // Transformar imagenPrincipal
-  if (producto.imagenPrincipal) {
-    producto.imagenPrincipal = transformarUrlImagen(producto.imagenPrincipal);
+  try {
+    // Crear una copia para no mutar el original
+    const productoTransformado = { ...producto };
+    
+    // Transformar imagenPrincipal
+    if (productoTransformado.imagenPrincipal) {
+      productoTransformado.imagenPrincipal = transformarUrlImagen(productoTransformado.imagenPrincipal);
+    }
+    
+    // Transformar imagenes array
+    if (productoTransformado.imagenes && Array.isArray(productoTransformado.imagenes)) {
+      productoTransformado.imagenes = productoTransformado.imagenes.map(img => {
+        if (!img) return null;
+        return {
+          ...img,
+          url: transformarUrlImagen(img.url)
+        };
+      }).filter(Boolean); // Remover elementos null
+    }
+    
+    return productoTransformado;
+  } catch (error) {
+    console.error('Error transformando producto:', error);
+    return producto; // Devolver el producto original si hay error
   }
-  
-  // Transformar imagenes array
-  if (producto.imagenes && Array.isArray(producto.imagenes)) {
-    producto.imagenes = producto.imagenes.map(img => ({
-      ...img,
-      url: transformarUrlImagen(img.url)
-    }));
-  }
-  
-  return producto;
 };
 
 // Transformar array de productos
 const transformarProductos = (productos) => {
-  if (!Array.isArray(productos)) return productos;
-  return productos.map(transformarProducto);
+  if (!Array.isArray(productos)) return [];
+  return productos.map(transformarProducto).filter(Boolean);
 };
 
 // Transformar usuario con URLs de imágenes

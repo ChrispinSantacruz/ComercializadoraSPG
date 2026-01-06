@@ -136,31 +136,46 @@ const getProductById = async (req, res) => {
       });
     }
 
-    // Obtener productos relacionados (misma categoría)
-    const productosRelacionados = await Product.find({
-      categoria: product.categoria._id,
-      _id: { $ne: id },
-      estado: 'aprobado',
-      stock: { $gt: 0 }
-    })
-      .populate('categoria', 'nombre')
-      .populate('comerciante', 'nombre')
-      .limit(6)
-      .lean();
+    // Obtener productos relacionados (misma categoría) - con manejo seguro de categoria
+    let productosRelacionados = [];
+    if (product.categoria && (product.categoria._id || product.categoria)) {
+      const categoriaId = product.categoria._id || product.categoria;
+      try {
+        productosRelacionados = await Product.find({
+          categoria: categoriaId,
+          _id: { $ne: id },
+          estado: 'aprobado',
+          stock: { $gt: 0 }
+        })
+          .populate('categoria', 'nombre')
+          .populate('comerciante', 'nombre')
+          .limit(6)
+          .lean();
+      } catch (relatedError) {
+        console.warn('⚠️  Error obteniendo productos relacionados:', relatedError.message);
+        // Continuar sin productos relacionados
+      }
+    }
 
     // Obtener estadísticas de ventas del producto
-    const ventasStats = await Order.aggregate([
-      { $match: { 'productos.producto': new mongoose.Types.ObjectId(id), estado: 'entregado' } },
-      { $unwind: '$productos' },
-      { $match: { 'productos.producto': new mongoose.Types.ObjectId(id) } },
-      {
-        $group: {
-          _id: null,
-          totalVendido: { $sum: '$productos.cantidad' },
-          totalIngresos: { $sum: { $multiply: ['$productos.precio', '$productos.cantidad'] } }
+    let ventasStats = [];
+    try {
+      ventasStats = await Order.aggregate([
+        { $match: { 'productos.producto': new mongoose.Types.ObjectId(id), estado: 'entregado' } },
+        { $unwind: '$productos' },
+        { $match: { 'productos.producto': new mongoose.Types.ObjectId(id) } },
+        {
+          $group: {
+            _id: null,
+            totalVendido: { $sum: '$productos.cantidad' },
+            totalIngresos: { $sum: { $multiply: ['$productos.precio', '$productos.cantidad'] } }
+          }
         }
-      }
-    ]);
+      ]);
+    } catch (ventasError) {
+      console.warn('⚠️  Error obteniendo estadísticas de ventas:', ventasError.message);
+      // Continuar sin estadísticas de ventas
+    }
 
     // Transformar URLs de imágenes
     const productoTransformado = transformarProducto(product);

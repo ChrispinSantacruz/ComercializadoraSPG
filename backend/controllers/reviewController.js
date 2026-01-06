@@ -169,6 +169,9 @@ const crearReseña = async (req, res) => {
 
     // Actualizar estadísticas del producto
     await actualizarEstadisticasProducto(producto);
+    
+    // Actualizar estadísticas del comerciante
+    await actualizarEstadisticasComerciante(productoExiste.comerciante);
 
     // Enviar notificación al comerciante
     try {
@@ -401,9 +404,13 @@ const moderarReseña = async (req, res) => {
 
     await reseña.save();
 
-    // Actualizar estadísticas del producto si se aprobó
-    if (estado === 'aprobada') {
-      await actualizarEstadisticasProducto(reseña.producto._id);
+    // Actualizar estadísticas del producto y comerciante
+    await actualizarEstadisticasProducto(reseña.producto._id);
+    
+    // Obtener el comerciante del producto para actualizar sus estadísticas
+    const producto = await Product.findById(reseña.producto._id).select('comerciante');
+    if (producto) {
+      await actualizarEstadisticasComerciante(producto.comerciante);
     }
 
     // Notificar al usuario
@@ -514,6 +521,50 @@ const actualizarEstadisticasProducto = async (productoId) => {
     }
   } catch (error) {
     console.error('Error actualizando estadísticas del producto:', error);
+  }
+};
+
+// Función auxiliar para actualizar estadísticas del comerciante
+const actualizarEstadisticasComerciante = async (comercianteId) => {
+  try {
+    // Obtener todos los productos del comerciante
+    const productos = await Product.find({ comerciante: comercianteId }).select('_id');
+    const productosIds = productos.map(p => p._id);
+
+    if (productosIds.length === 0) {
+      return;
+    }
+
+    // Calcular estadísticas de todas las reseñas de los productos del comerciante
+    const estadisticas = await Review.aggregate([
+      { 
+        $match: { 
+          producto: { $in: productosIds },
+          estado: 'aprobada'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          calificacionPromedio: { $avg: '$calificacion' },
+          totalReseñas: { $sum: 1 }
+        }
+      }
+    ]);
+
+    if (estadisticas.length > 0) {
+      await User.findByIdAndUpdate(comercianteId, {
+        'estadisticasComerciante.calificacionPromedio': Math.round(estadisticas[0].calificacionPromedio * 10) / 10,
+        'estadisticasComerciante.totalReseñas': estadisticas[0].totalReseñas
+      });
+      
+      console.log(`✅ Estadísticas del comerciante ${comercianteId} actualizadas:`, {
+        calificacionPromedio: Math.round(estadisticas[0].calificacionPromedio * 10) / 10,
+        totalReseñas: estadisticas[0].totalReseñas
+      });
+    }
+  } catch (error) {
+    console.error('Error actualizando estadísticas del comerciante:', error);
   }
 };
 
